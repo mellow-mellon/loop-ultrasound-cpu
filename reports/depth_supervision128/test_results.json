@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "command": "PYTHONPATH=src .venv/bin/python -m pytest -q",
+  "tests_passed": 203,
+  "subtests_passed": 41,
+  "elapsed_seconds": 2.97,
+  "execution_date": "2026-10-04",
+  "scope": "Includes loss scaling, terminal recurrent gradients, paired initialization, worker/source protection and strict paired analysis"
+}

@@ -1,0 +1,76 @@
+{
+  "arms": [
+    "SJ"
+  ],
+  "augment": false,
+  "batch_size": 2,
+  "budget": "Same optimizer updates and Case exposure; trained4 uses additional compute, not equal FLOPs",
+  "cached_frozen_features": true,
+  "calibration_and_test_predictions": false,
+  "clinical_validation": false,
+  "depths": [
+    2,
+    4
+  ],
+  "device": "cpu",
+  "encoder_sha256": "d2169b631631699b652d392db7647472cf194a9d01fe402ff11470c4dd374eb0",
+  "epochs": 50,
+  "eval_every": 5,
+  "initialization_sha256_by_seed": {
+    "17": "32422619b14bca9f4fd93650c6f5c047c91e2ef28548f425d6f48ac4d880c1f2",
+    "29": "6db8a3459a6235c51053b6cdb66fecb1a4b47a510974c76e0c5e857fa55b012b",
+    "43": "c7e062c100f640dca629e42735a7dd440c241dbc7f4962ebbf0c0df66f485c83"
+  },
+  "intermediate_terminal_predictions": "Diagnostic only; no directly trained intermediate readout",
+  "interpretation": "Conditional development screening; no automatic significance, clinical, or GPU gate",
+  "launcher_source_sha256": "dfa41cce5d386a9112b05dbd5b400602ec3dbe4245e9daba9e6996a934fc598e",
+  "learning_rate": 0.0003,
+  "manifest_sha256": "47a065ec48faca9fb37c17f841a1c2414a6bd902e55f3c93a90dba3df3eaf0ac",
+  "model_selection": "fixed_final_epoch_no_best_epoch_selection",
+  "patient_mapping": "unverified_Case_grouped_only",
+  "phase": "exploratory_followup_on_previously_observed_tune",
+  "primary_depth_benefit": "Brier_trained2_endpoint - Brier_trained4_endpoint, within each supervision mode",
+  "primary_interaction": "depth_benefit_terminal - depth_benefit_all",
+  "primary_metric": "Case Brier at the final readout of each separately trained model",
+  "sampling": "proportional",
+  "secondary_metrics": [
+    "AUROC",
+    "NLL",
+    "mean_Case_Dice",
+    "within_trained4_h2_to_h4"
+  ],
+  "seeds": [
+    17,
+    29,
+    43
+  ],
+  "segmentation_weight": 1.0,
+  "selection_seed": 20261004,
+  "status": "fixed_before_depth_supervision_training",
+  "supervision_loss": {
+    "all": "Mean identical classification+segmentation loss over every configured readout",
+    "terminal": "Identical loss only on final readout; no depth divisor; full recurrent backpropagation"
+  },
+  "supervisions": [
+    "all",
+    "terminal"
+  ],
+  "threads": 2,
+  "train": {
+    "benign": 87,
+    "cases": 128,
+    "fingerprint": "f407cbbad125ab0c4ce7de1c80fdf1cad5e4e0a7f2d7556fa710438603f5ef3e",
+    "images": 227,
+    "malignant": 41
+  },
+  "training_source_sha256": "c3a1d28753504f5751d97db125c7a6515ae2db025d68ae15f72b5f1e085dc317",
+  "training_updates_per_run": 3200,
+  "tune": {
+    "benign": 108,
+    "cases": 159,
+    "fingerprint": "b230c7456222a5b7757d2309f31c604cd9a57cb870d0b2e58120686e6abce8a8",
+    "images": 281,
+    "malignant": 51
+  },
+  "warm_starts": false
+}

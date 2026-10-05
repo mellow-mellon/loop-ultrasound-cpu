@@ -47,7 +47,7 @@ class ClinicalDepthModel(nn.Module):
     ``seg_gradient=False`` detaches *after* representation normalization. Mask
     gradients therefore reach neither the core, normalization nor classifier.
     Untied blocks start at equal values but own independent Parameter storage.
-    The intermediate readouts must be trained before being evaluated as models.
+    Readouts without direct supervision are diagnostic intermediate predictions.
     """
 
     def __init__(self, shared: bool, seg_gradient: bool, steps: int = 4,
@@ -146,18 +146,24 @@ def parameter_counts(model: ClinicalDepthModel) -> Dict[str, int]:
 
 def trajectory_loss(outputs: List[Dict[str, Tensor]], pathology: Tensor,
                     mask: Tensor, valid_pixels: Tensor,
-                    segmentation_weight: float = 1.0) -> Tensor:
-    """Uniform per-step BCE plus masked (0.5 pixel BCE + 0.5 soft Dice).
+                    segmentation_weight: float = 1.0, *,
+                    supervision: str = "all") -> Tensor:
+    """Mean selected-readout BCE plus masked (0.5 pixel BCE + 0.5 soft Dice).
 
     Binary malignancy is 1 and benign is 0. Letterbox padding is excluded. Case
     sampling and patient grouping are responsibilities of the data pipeline.
     Labels supervise/evaluate outputs and are never inputs to the model.
+    Terminal supervision selects only the final readout, with no depth divisor;
+    its gradient still traverses every preceding recurrent application.
     """
+    if supervision not in ("all", "terminal"):
+        raise ValueError("supervision must be all or terminal.")
     if not math.isfinite(segmentation_weight) or segmentation_weight < 0:
         raise ValueError("segmentation_weight must be finite and nonnegative.")
     pathology, mask, valid = pathology.float(), mask.float(), valid_pixels.float()
     if not outputs:
         raise ValueError("The loss requires at least one readout.")
+    outputs = outputs if supervision == "all" else outputs[-1:]
     if mask.ndim != 4 or mask.shape[1] != 1 or valid.shape != mask.shape:
         raise ValueError("Mask and validity must both be B x 1 x H x W.")
     if pathology.shape != (mask.shape[0],):

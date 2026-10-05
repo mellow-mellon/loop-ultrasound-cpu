@@ -97,7 +97,8 @@ def run(args):
                 summary = json.loads((directory / "summary.json").read_text())
                 expected = {"arm": arm, "steps": 4, "seed": seed, "epochs": 50, "batch_size": 2,
                             "learning_rate": .0003, "segmentation_weight": 1., "cached_frozen_features": True,
-                            "augment": False, "selection_seed": 20261004, "sampling": "proportional", "eval_every": 5}
+                            "augment": False, "selection_seed": 20261004, "sampling": "proportional", "eval_every": 5,
+                            "supervision": "all"}
                 if (summary.get("config") != expected or summary.get("encoder_sha256") != protocol["encoder_sha256"]
                         or summary.get("manifest_sha256") != protocol["manifest_sha256"]
                         or summary.get("training_source_sha256") != protocol["training_source_sha256"]

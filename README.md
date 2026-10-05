@@ -145,6 +145,35 @@ Before a formal study:
 4. Add original-resolution contour metrics, clinical annotation QA, label-policy sensitivity analyses and audited external evaluation. Better contours and better calibrated malignancy predictions must be evaluated separately.
 5. Calibrate thresholds on calibration Cases, then evaluate the sealed test once under a locked protocol. This repository currently demonstrates benchmark-label prediction, not clinical usefulness or a deployment decision aid.
 
+## CPU follow-up: separately trained depth × supervision
+
+The next screen holds the shared+joint architecture fixed and freshly trains 2-step/4-step models under all-readout/terminal-only supervision, at seeds 17/29/43. It retains the same 128/159 Case cohorts and the fixed 50-epoch schedule. See [the locked experiment plan](docs/CPU_DEPTH_SUPERVISION_PLAN.md) and [executed configuration](configs/cpu_depth_supervision128.json).
+
+Terminal supervision uses the identical classification and mask loss only on the final readout, without dividing by configured depth; gradients still traverse the full recurrence. Every-step supervision averages losses over configured readouts. All four settings have identical trainable parameter counts and paired initial weights. Equal optimizer updates and Case exposure allow the deeper model extra compute; this is not a compute-matched experiment.
+
+```bash
+python -m loop_ultrasound.depth_supervision --prepare-only \
+  --reference-protocol outputs/cpu-expanded128/protocol.json --threads 2
+python -m loop_ultrasound.depth_supervision \
+  --reference-protocol outputs/cpu-expanded128/protocol.json --threads 2
+```
+
+Preparation must finish before training starts. The default single worker executes all twelve runs sequentially. The executed experiment instead starts two separate CPU processes after preparation, each with `--workers 2` and a distinct `--worker-index 0` or `1`; their six-run partitions are disjoint. An unfinished claimed directory is never silently retrained or overwritten.
+
+On another machine, first reproduce the expanded phase and use its locally produced reference protocol as above: manifest hashes include local paths, while cohort fingerprints exclude paths. The checked-in configurations record this machine's executed provenance. Previously validated feature caches may be reused; fitted model weights are always fresh.
+
+After every run completes:
+
+```bash
+python -m loop_ultrasound.analyze_depth_supervision \
+  --protocol outputs/cpu-depth-supervision128/protocol.json \
+  --run-dirs outputs/cpu-depth-supervision128/SJ-depth*-*-seed* \
+  --baseline-dir outputs/cpu-expanded128/baselines \
+  --output outputs/cpu-depth-supervision128/depth_supervision_analysis.json
+```
+
+The primary outcome compares separately fitted 2-step/4-step **endpoints** within each supervision mode. Within-model intermediate changes are secondary; terminal-only intermediate readouts were not directly supervised. This follow-up uses an already observed development cohort, so it is exploratory. Both classification and mask supervision locations change together; their individual contributions are not isolated.
+
 ## Data and code attribution
 
 BUS-BRA is described in [the dataset publication](https://pubmed.ncbi.nlm.nih.gov/37937827/) and distributed under CC-BY-4.0 on Zenodo. Download it from the official source; it is not bundled here. Follow the authors' citation requirements when reporting experiments. The encoder's upstream license applies to its weights. This repository's original code is MIT; the authors' MATLAB training implementation was not copied. Do not upload `data/`, `outputs/`, weights or individual prediction files to this public repository.

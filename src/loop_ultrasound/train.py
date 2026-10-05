@@ -61,6 +61,18 @@ def parameter_groups(model):
     return core, mask
 
 
+def initialization_fingerprint(model):
+    """Digest actual initial parameters/buffers, independent of configured depth."""
+    digest = hashlib.sha256()
+    for name, tensor in model.state_dict().items():
+        value = tensor.detach().cpu().contiguous()
+        digest.update(name.encode() + b"\0")
+        digest.update(str(value.dtype).encode() + b"\0")
+        digest.update(json.dumps(list(value.shape)).encode() + b"\0")
+        digest.update(value.numpy().tobytes())
+    return digest.hexdigest()
+
+
 def prepare_features(encoder, dataset, batch_size):
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=0,
                         generator=torch.Generator().manual_seed(0))
@@ -154,6 +166,7 @@ def run(args):
     encoder = create_encoder(pretrained=True, weights_path=args.encoder_weights)
     torch.manual_seed(args.seed)  # Pair core/head initialization independent of encoder creation.
     model = make_model(args.arm, steps=args.steps)
+    initial_sha256 = initialization_fingerprint(model)
     core, mask = parameter_groups(model)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=.01)
     cached, encoding_seconds = None, 0.
@@ -186,9 +199,10 @@ def run(args):
                 tokens = encoder(batch["image"])
             else:
                 tokens = cached[[feature_index[i] for i in batch["image_id"]]]
-            outputs = model(tokens, max_steps=args.steps, return_all=True)
+            outputs = model(tokens, max_steps=args.steps, return_all=args.supervision == "all")
             loss = trajectory_loss(outputs, batch["label"], batch["mask"],
-                                   batch["valid_pixels"], segmentation_weight=args.segmentation_weight)
+                                   batch["valid_pixels"], segmentation_weight=args.segmentation_weight,
+                                   supervision=args.supervision)
             if not torch.isfinite(loss):
                 raise FloatingPointError("Nonfinite loss.")
             loss.backward()
@@ -205,14 +219,17 @@ def run(args):
             print(json.dumps(history[-1]), flush=True)
             if development_history and development_history[-1]["epoch"] == epoch+1:
                 last = development_history[-1]["by_step"][str(args.steps)]
-                print(json.dumps({"epoch": epoch+1, "development_brier_step4": last["brier"],
-                                  "development_auroc_step4": last["auroc"],
-                                  "development_dice_step4": last["mean_case_dice"]}), flush=True)
+                print(json.dumps({"epoch": epoch+1, "endpoint_depth": args.steps,
+                                  "development_brier_endpoint": last["brier"],
+                                  "development_auroc_endpoint": last["auroc"],
+                                  "development_dice_endpoint": last["mean_case_dice"]}), flush=True)
     training_seconds = time.perf_counter() - start
     train_records, final = evaluate(model, encoder, train_rows, args, cache=cached)
     write_records(run_dir / "training_predictions.csv", train_records)
     torch.save({"model_state": model.state_dict(), "arm": args.arm, "steps": args.steps,
-                "seed": args.seed, "encoder_sha256": hashlib.sha256(Path(args.encoder_weights).read_bytes()).hexdigest()},
+                "seed": args.seed, "supervision": args.supervision,
+                "initialization_sha256": initial_sha256,
+                "encoder_sha256": hashlib.sha256(Path(args.encoder_weights).read_bytes()).hexdigest()},
                run_dir / "checkpoint.pt")
     development = None
     if args.eval_max_cases:
@@ -227,7 +244,15 @@ def run(args):
                    "epochs": args.epochs, "batch_size": args.batch_size,
                    "learning_rate": args.learning_rate, "segmentation_weight": args.segmentation_weight,
                    "cached_frozen_features": args.cache_features, "augment": args.augment,
-                   "selection_seed": selection_seed, "sampling": args.sampling, "eval_every": args.eval_every},
+                   "selection_seed": selection_seed, "sampling": args.sampling, "eval_every": args.eval_every,
+                   "supervision": args.supervision},
+        "initialization_sha256": initial_sha256,
+        "readout_supervision": {
+            "mode": args.supervision,
+            "directly_supervised_steps": list(range(1, args.steps+1)) if args.supervision == "all" else [args.steps],
+            "intermediate_predictions_scope": "directly_supervised" if args.supervision == "all"
+                                             else "diagnostic_only_no_direct_intermediate_readout_loss",
+        },
         "cohort_selection": {"sampling": args.sampling, "selection_seed": selection_seed,
                              "train_fingerprint": cohort_fingerprint(train_rows),
                              "tune_fingerprint": cohort_fingerprint(tune_rows)},
@@ -271,6 +296,8 @@ def parser():
     p.add_argument("--run-dir", default="outputs/cpu-pilot-sj")
     p.add_argument("--arm", choices=["SC", "SJ", "UC", "UJ"], default="SJ")
     p.add_argument("--steps", type=int, choices=range(1, 5), default=4)
+    p.add_argument("--supervision", choices=["all", "terminal"], default="all",
+                   help="Both classification/mask losses at all readouts or only the final readout.")
     p.add_argument("--max-cases", type=int, default=8)
     p.add_argument("--epochs", type=int, default=30)
     p.add_argument("--batch-size", type=int, default=2)

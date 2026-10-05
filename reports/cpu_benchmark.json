@@ -1,0 +1,201 @@
+{
+  "status": "executed_cpu_benchmark",
+  "clinical_validation": false,
+  "environment": {
+    "python": "3.12.14",
+    "os": "Darwin",
+    "architecture": "arm64",
+    "torch": "2.14.1",
+    "logical_cpus": 10,
+    "threads": 2
+  },
+  "device": "cpu",
+  "batch_size": 2,
+  "input_size": [
+    224,
+    224
+  ],
+  "measured_iterations_per_operation": 100,
+  "warmup": 5,
+  "encoder_sha256": "d2169b631631699b652d392db7647472cf194a9d01fe402ff11470c4dd374eb0",
+  "encoder_frozen_parameters": 5717416,
+  "png_loading_preprocessing": {
+    "n": 20,
+    "median_seconds": 0.003676187014207244,
+    "p90_seconds": 0.0037305167061276734,
+    "mean_seconds": 0.0036675374954938888
+  },
+  "arms": {
+    "SC": {
+      "parameters": {
+        "total": 714530,
+        "trainable": 714530,
+        "core": 444864,
+        "core_and_classification": 470081,
+        "mask_head": 244449,
+        "independent_blocks": 1,
+        "block_applications_at_full_depth": 4
+      },
+      "online_encoder_training_update": {
+        "n": 100,
+        "median_seconds": 0.06383527049911208,
+        "p90_seconds": 0.06582532437168993,
+        "mean_seconds": 0.06420053080888465
+      },
+      "online_encoder_endpoint_inference": {
+        "1": {
+          "n": 100,
+          "median_seconds": 0.013854916498530656,
+          "p90_seconds": 0.01411712970584631,
+          "mean_seconds": 0.01390149668266531
+        },
+        "2": {
+          "n": 100,
+          "median_seconds": 0.014703082968480885,
+          "p90_seconds": 0.015307724702870477,
+          "mean_seconds": 0.014871912521775811
+        },
+        "4": {
+          "n": 100,
+          "median_seconds": 0.01606872898992151,
+          "p90_seconds": 0.016474708891473712,
+          "mean_seconds": 0.016121302008396014
+        }
+      },
+      "rough_100_epoch_update_hours_at_this_batch": 0.5195481737844401
+    },
+    "SJ": {
+      "parameters": {
+        "total": 714530,
+        "trainable": 714530,
+        "core": 444864,
+        "core_and_classification": 470081,
+        "mask_head": 244449,
+        "independent_blocks": 1,
+        "block_applications_at_full_depth": 4
+      },
+      "online_encoder_training_update": {
+        "n": 100,
+        "median_seconds": 0.0651187080075033,
+        "p90_seconds": 0.06620519193238579,
+        "mean_seconds": 0.06494283039530274
+      },
+      "online_encoder_endpoint_inference": {
+        "1": {
+          "n": 100,
+          "median_seconds": 0.013806854520225897,
+          "p90_seconds": 0.014057254215003923,
+          "mean_seconds": 0.013850965041201561
+        },
+        "2": {
+          "n": 100,
+          "median_seconds": 0.014553750515915453,
+          "p90_seconds": 0.01484826281084679,
+          "mean_seconds": 0.0146320246119285
+        },
+        "4": {
+          "n": 100,
+          "median_seconds": 0.01629370849695988,
+          "p90_seconds": 0.016570575279183687,
+          "mean_seconds": 0.01631287288037129
+        }
+      },
+      "rough_100_epoch_update_hours_at_this_batch": 0.5299939290610686
+    },
+    "UC": {
+      "parameters": {
+        "total": 2049122,
+        "trainable": 2049122,
+        "core": 1779456,
+        "core_and_classification": 1804673,
+        "mask_head": 244449,
+        "independent_blocks": 4,
+        "block_applications_at_full_depth": 4
+      },
+      "online_encoder_training_update": {
+        "n": 100,
+        "median_seconds": 0.06594268750632182,
+        "p90_seconds": 0.06764969938667491,
+        "mean_seconds": 0.0659986608021427
+      },
+      "online_encoder_endpoint_inference": {
+        "1": {
+          "n": 100,
+          "median_seconds": 0.013850312010617927,
+          "p90_seconds": 0.014117941987933591,
+          "mean_seconds": 0.01390671917819418
+        },
+        "2": {
+          "n": 100,
+          "median_seconds": 0.014590750011848286,
+          "p90_seconds": 0.01567750832764432,
+          "mean_seconds": 0.015098921250901185
+        },
+        "4": {
+          "n": 100,
+          "median_seconds": 0.016280458017718047,
+          "p90_seconds": 0.01654916733969003,
+          "mean_seconds": 0.01630567991058342
+        }
+      },
+      "rough_100_epoch_update_hours_at_this_batch": 0.5367002066486748
+    },
+    "UJ": {
+      "parameters": {
+        "total": 2049122,
+        "trainable": 2049122,
+        "core": 1779456,
+        "core_and_classification": 1804673,
+        "mask_head": 244449,
+        "independent_blocks": 4,
+        "block_applications_at_full_depth": 4
+      },
+      "online_encoder_training_update": {
+        "n": 100,
+        "median_seconds": 0.06660429199109785,
+        "p90_seconds": 0.06865047499886714,
+        "mean_seconds": 0.06687056538823527
+      },
+      "online_encoder_endpoint_inference": {
+        "1": {
+          "n": 100,
+          "median_seconds": 0.013893542025471106,
+          "p90_seconds": 0.014160062494920567,
+          "mean_seconds": 0.013897653359454126
+        },
+        "2": {
+          "n": 100,
+          "median_seconds": 0.014547750004567206,
+          "p90_seconds": 0.014866774732945487,
+          "mean_seconds": 0.014622965407907031
+        },
+        "4": {
+          "n": 100,
+          "median_seconds": 0.01633666700217873,
+          "p90_seconds": 0.016540917009115218,
+          "mean_seconds": 0.016323886221507565
+        }
+      },
+      "rough_100_epoch_update_hours_at_this_batch": 0.5420849320386575
+    }
+  },
+  "process_peak_rss_mib": 542.875,
+  "timing_scope": {
+    "training": "Frozen encoder forward + 4 refinement applications + all-step dual heads/loss + backward + separate clipping + AdamW.",
+    "inference": "Frozen encoder forward + selected refinement depth + terminal classification and mask heads, no_grad.",
+    "excludes_from_model_timings": [
+      "PNG decoding/preprocessing",
+      "network",
+      "first model load",
+      "augmentation"
+    ],
+    "loading": "Warm OS cache, one real batch loaded/preprocessed serially; measured separately.",
+    "rss": "Peak for entire process including encoder/model/optimizer/imports; cumulative across arms, not per-arm memory."
+  },
+  "limitations": [
+    "Timing models start from random refinement heads; no accuracy claim.",
+    "Repeated fixed mini-batch is a timing workload, not a research training run.",
+    "Epoch projection counts one sampled image per training Case. It excludes loading, evaluation and scheduling.",
+    "Projection applies only to this CPU and batch size; do not extrapolate to batch 16, a GPU, or end-to-end encoder training."
+  ]
+}

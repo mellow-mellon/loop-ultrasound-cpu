@@ -1,0 +1,69 @@
+{
+  "status": "executed_data_audit",
+  "clinical_validation": false,
+  "source": {
+    "source_url": "https://zenodo.org/api/records/8231412/files/BUSBRA.zip/content",
+    "doi": "https://doi.org/10.5281/zenodo.8231412",
+    "license": "CC-BY-4.0",
+    "archive_bytes": 133917740,
+    "verified_md5": "1f8b2be6476d58fc97bfb5e5a1ea9bab",
+    "local_archive_sha256": "ba3e6ed19cc37c682d8d39e25435bbf8a555a12cb7e641b5f2117685c95580ff",
+    "patient_mapping": "Case-to-patient mapping remains unverified"
+  },
+  "split": {
+    "group_key": "Case",
+    "case_to_patient_mapping_verified": false,
+    "clinical_protocol_eligibility": "demonstration only; patient mapping unresolved",
+    "internal_valid_flags_used": false,
+    "seed": 20261004,
+    "official_outer_fold": 1,
+    "cases_per_split": {
+      "test": 212,
+      "train": 585,
+      "tune": 159,
+      "cal": 108
+    },
+    "images_per_split": {
+      "train": 1027,
+      "cal": 191,
+      "tune": 281,
+      "test": 376
+    },
+    "pathology_by_case_split": {
+      "cal": {
+        "malignant": 35,
+        "benign": 73
+      },
+      "test": {
+        "benign": 144,
+        "malignant": 68
+      },
+      "train": {
+        "malignant": 188,
+        "benign": 397
+      },
+      "tune": {
+        "malignant": 51,
+        "benign": 108
+      }
+    },
+    "source_metadata_sha256": "f218d0f10b0aeeb14ff4b2cfed8631b2f4a7cf608e564548b35bddd55f3aafb3",
+    "source_folds_sha256": "8bed2d2efdf6ea370ab82a3cbda4c213f498274a68b434828ceeb636ce43a68d"
+  },
+  "pixel_audit": {
+    "images_checked": 1875,
+    "valid_pairs": 1875,
+    "n_errors": 0,
+    "n_warnings": 4,
+    "warning_codes": {
+      "metadata_dimensions_mismatch": 4
+    },
+    "resized_empty_masks": 0,
+    "resized_mask_image_size": 224,
+    "exact_duplicate_image_groups": 0,
+    "exact_duplicate_mask_groups": 0,
+    "near_duplicate_review_completed": false,
+    "expert_contour_review_completed": false
+  },
+  "metadata_dimension_policy": "Preserve original CSV. Use actual PNG geometry after verifying matching image/mask geometry."
+}

@@ -1,0 +1,667 @@
+{
+  "status": "passed",
+  "device": "cpu",
+  "purpose": "synthetic implementation checks, not training or diagnostic validation",
+  "torch_version": "2.14.1",
+  "threads": 2,
+  "deterministic_algorithms": true,
+  "encoder_pretrained_requested": true,
+  "checks_executed": 43,
+  "checks_passed": 43,
+  "checks_failed": [],
+  "execution_counts": {
+    "model_forward_calls": 78,
+    "shape_and_identity_forward_cases": 34,
+    "endpoint_cases": 32,
+    "backward_passes": 12,
+    "encoder_forward_cases": 2
+  },
+  "parameter_counts": {
+    "SC": {
+      "total": 714530,
+      "trainable": 714530,
+      "core": 444864,
+      "core_and_classification": 470081,
+      "mask_head": 244449,
+      "independent_blocks": 1,
+      "block_applications_at_full_depth": 4
+    },
+    "SJ": {
+      "total": 714530,
+      "trainable": 714530,
+      "core": 444864,
+      "core_and_classification": 470081,
+      "mask_head": 244449,
+      "independent_blocks": 1,
+      "block_applications_at_full_depth": 4
+    },
+    "UC": {
+      "total": 2049122,
+      "trainable": 2049122,
+      "core": 1779456,
+      "core_and_classification": 1804673,
+      "mask_head": 244449,
+      "independent_blocks": 4,
+      "block_applications_at_full_depth": 4
+    },
+    "UJ": {
+      "total": 2049122,
+      "trainable": 2049122,
+      "core": 1779456,
+      "core_and_classification": 1804673,
+      "mask_head": 244449,
+      "independent_blocks": 4,
+      "block_applications_at_full_depth": 4
+    }
+  },
+  "checks": [
+    {
+      "name": "SC/parameter_identity_and_clip_groups",
+      "passed": true,
+      "runtime_seconds": 0.016668,
+      "details": {
+        "independent_blocks": 1,
+        "disjoint_clip_groups": true
+      }
+    },
+    {
+      "name": "SC/batch1/depth1/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.006184,
+      "details": {
+        "batch": 1,
+        "steps": 1,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SC/batch1/depth2/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.00866,
+      "details": {
+        "batch": 1,
+        "steps": 2,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SC/batch1/depth3/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.012181,
+      "details": {
+        "batch": 1,
+        "steps": 3,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SC/batch1/depth4/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.016901,
+      "details": {
+        "batch": 1,
+        "steps": 4,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SC/batch2/depth1/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.05229,
+      "details": {
+        "batch": 2,
+        "steps": 1,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SC/batch2/depth2/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.014939,
+      "details": {
+        "batch": 2,
+        "steps": 2,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SC/batch2/depth3/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.019709,
+      "details": {
+        "batch": 2,
+        "steps": 3,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SC/batch2/depth4/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.024189,
+      "details": {
+        "batch": 2,
+        "steps": 4,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SC/mask_only_gradient_routing",
+      "passed": true,
+      "runtime_seconds": 0.038263,
+      "details": {
+        "mask_head_has_gradient": true,
+        "core_has_gradient": false,
+        "norm_has_gradient": false
+      }
+    },
+    {
+      "name": "SC/lambda_does_not_change_classification_update_gradient",
+      "passed": true,
+      "runtime_seconds": 0.110451,
+      "details": {
+        "weights": [
+          0.0,
+          0.1,
+          3.0
+        ],
+        "core_and_class_gradients_identical": true
+      }
+    },
+    {
+      "name": "SJ/parameter_identity_and_clip_groups",
+      "passed": true,
+      "runtime_seconds": 0.012421,
+      "details": {
+        "independent_blocks": 1,
+        "disjoint_clip_groups": true
+      }
+    },
+    {
+      "name": "SJ/batch1/depth1/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.005993,
+      "details": {
+        "batch": 1,
+        "steps": 1,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SJ/batch1/depth2/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.009134,
+      "details": {
+        "batch": 1,
+        "steps": 2,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SJ/batch1/depth3/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.012479,
+      "details": {
+        "batch": 1,
+        "steps": 3,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SJ/batch1/depth4/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.015431,
+      "details": {
+        "batch": 1,
+        "steps": 4,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SJ/batch2/depth1/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.00904,
+      "details": {
+        "batch": 2,
+        "steps": 1,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SJ/batch2/depth2/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.013871,
+      "details": {
+        "batch": 2,
+        "steps": 2,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SJ/batch2/depth3/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.018961,
+      "details": {
+        "batch": 2,
+        "steps": 3,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SJ/batch2/depth4/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.023882,
+      "details": {
+        "batch": 2,
+        "steps": 4,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "SJ/mask_only_gradient_routing",
+      "passed": true,
+      "runtime_seconds": 0.032881,
+      "details": {
+        "mask_head_has_gradient": true,
+        "core_has_gradient": true,
+        "norm_has_gradient": true
+      }
+    },
+    {
+      "name": "UC/parameter_identity_and_clip_groups",
+      "passed": true,
+      "runtime_seconds": 0.000698,
+      "details": {
+        "independent_blocks": 4,
+        "disjoint_clip_groups": true
+      }
+    },
+    {
+      "name": "UC/batch1/depth1/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.00544,
+      "details": {
+        "batch": 1,
+        "steps": 1,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UC/batch1/depth2/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.008454,
+      "details": {
+        "batch": 1,
+        "steps": 2,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UC/batch1/depth3/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.01149,
+      "details": {
+        "batch": 1,
+        "steps": 3,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UC/batch1/depth4/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.014651,
+      "details": {
+        "batch": 1,
+        "steps": 4,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UC/batch2/depth1/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.00875,
+      "details": {
+        "batch": 2,
+        "steps": 1,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UC/batch2/depth2/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.013806,
+      "details": {
+        "batch": 2,
+        "steps": 2,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UC/batch2/depth3/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.018864,
+      "details": {
+        "batch": 2,
+        "steps": 3,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UC/batch2/depth4/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.023924,
+      "details": {
+        "batch": 2,
+        "steps": 4,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UC/mask_only_gradient_routing",
+      "passed": true,
+      "runtime_seconds": 0.027114,
+      "details": {
+        "mask_head_has_gradient": true,
+        "core_has_gradient": false,
+        "norm_has_gradient": false
+      }
+    },
+    {
+      "name": "UC/lambda_does_not_change_classification_update_gradient",
+      "passed": true,
+      "runtime_seconds": 0.101878,
+      "details": {
+        "weights": [
+          0.0,
+          0.1,
+          3.0
+        ],
+        "core_and_class_gradients_identical": true
+      }
+    },
+    {
+      "name": "UJ/parameter_identity_and_clip_groups",
+      "passed": true,
+      "runtime_seconds": 0.000674,
+      "details": {
+        "independent_blocks": 4,
+        "disjoint_clip_groups": true
+      }
+    },
+    {
+      "name": "UJ/batch1/depth1/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.00545,
+      "details": {
+        "batch": 1,
+        "steps": 1,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UJ/batch1/depth2/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.008449,
+      "details": {
+        "batch": 1,
+        "steps": 2,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UJ/batch1/depth3/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.011472,
+      "details": {
+        "batch": 1,
+        "steps": 3,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UJ/batch1/depth4/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.01452,
+      "details": {
+        "batch": 1,
+        "steps": 4,
+        "mask_shape": [
+          1,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UJ/batch2/depth1/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.008785,
+      "details": {
+        "batch": 2,
+        "steps": 1,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UJ/batch2/depth2/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.013844,
+      "details": {
+        "batch": 2,
+        "steps": 2,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UJ/batch2/depth3/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.018998,
+      "details": {
+        "batch": 2,
+        "steps": 3,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UJ/batch2/depth4/forward_and_endpoint",
+      "passed": true,
+      "runtime_seconds": 0.02401,
+      "details": {
+        "batch": 2,
+        "steps": 4,
+        "mask_shape": [
+          2,
+          1,
+          224,
+          224
+        ]
+      }
+    },
+    {
+      "name": "UJ/mask_only_gradient_routing",
+      "passed": true,
+      "runtime_seconds": 0.033313,
+      "details": {
+        "mask_head_has_gradient": true,
+        "core_has_gradient": true,
+        "norm_has_gradient": true
+      }
+    },
+    {
+      "name": "encoder/shape_eval_freeze_and_downstream_backward",
+      "passed": true,
+      "runtime_seconds": 0.342218,
+      "details": {
+        "encoder_name": "deit_tiny_patch16_224.fb_in1k",
+        "pretrained_requested_and_loaded": true,
+        "weights_source": "data/deit_tiny_encoder.pt",
+        "weights_role": "pretrained structure check",
+        "spatial_shapes": [
+          [
+            1,
+            196,
+            192
+          ],
+          [
+            2,
+            196,
+            192
+          ]
+        ],
+        "total_parameters": 5717416,
+        "trainable_parameters": 0
+      }
+    }
+  ],
+  "runtime_seconds": 1.632143
+}

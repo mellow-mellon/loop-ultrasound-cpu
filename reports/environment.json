@@ -1,0 +1,20 @@
+{
+  "execution_date": "2026-10-04",
+  "python": "3.12.14",
+  "os": "Darwin",
+  "architecture": "arm64",
+  "training_device": "cpu",
+  "execution_threads": 2,
+  "dtype": "float32",
+  "packages": {
+    "torch": "2.14.1",
+    "torchvision": "0.29.1",
+    "timm": "1.0.30",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "pytest": "9.1.1",
+    "scikit-learn": "1.9.1"
+  },
+  "installed_package_import_verified": true,
+  "dependency_check": "pip check: no broken requirements found"
+}

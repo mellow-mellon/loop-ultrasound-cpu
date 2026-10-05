@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "loop-ultrasound-cpu"
+version = "0.1.0"
+description = "Reproducible CPU engineering pilot for shared-depth ultrasound Transformers"
+requires-python = ">=3.11"
+dependencies = ["torch>=2.5", "timm>=1.0", "numpy>=1.26", "Pillow>=10"]
+
+[project.optional-dependencies]
+test = ["pytest>=8", "scikit-learn>=1.4"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

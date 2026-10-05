@@ -1,0 +1,17 @@
+{
+  "status": "engineering_pilot_not_clinical_validation",
+  "device": "cpu",
+  "threads": 2,
+  "arm": "SJ",
+  "steps": 4,
+  "max_cases": 8,
+  "batch_size": 2,
+  "epochs": 30,
+  "learning_rate": 0.001,
+  "segmentation_weight": 1.0,
+  "cache_features": true,
+  "augment": false,
+  "seed": 17,
+  "evaluate_split": "tune",
+  "eval_max_cases": 16
+}

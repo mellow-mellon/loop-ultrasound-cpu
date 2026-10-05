@@ -1,0 +1,71 @@
+{
+  "status": "proposed_not_executed",
+  "protocol_date": "2026-10-04",
+  "input": {
+    "dataset": "BUS-BRA",
+    "size": [
+      224,
+      224
+    ],
+    "resize": "aspect_preserving_letterbox",
+    "encoder": "deit_tiny_patch16_224.fb_in1k",
+    "frozen": true,
+    "metadata_as_input": false,
+    "ground_truth_roi_as_input": false
+  },
+  "representation_width": 192,
+  "heads": 3,
+  "ffn_width": 768,
+  "steps": 4,
+  "readout_steps": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "primary_depth_contrast": [
+    2,
+    4
+  ],
+  "primary_diagnostic_score": "case_level_binary_Brier",
+  "primary_interaction": "(depth_benefit_SJ-depth_benefit_SC)-(depth_benefit_UJ-depth_benefit_UC)",
+  "primary_design": "sharing_x_segmentation_gradient_2x2",
+  "segmentation_probe_detached_in_diagnosis_representation_groups": true,
+  "segmentation_weight": 1.0,
+  "supervision": "uniform_all_steps",
+  "optimizer": "AdamW",
+  "learning_rate": 0.0003,
+  "weight_decay": 0.01,
+  "epochs": 100,
+  "warmup_epochs": 5,
+  "schedule": "cosine",
+  "clip_grad_norm": 1.0,
+  "gradient_clipping": "separate_core_and_classification_from_mask_head",
+  "batch_size": 16,
+  "case_sampling": "uniform_case_then_one_random_view",
+  "seeds": [
+    17,
+    29,
+    43
+  ],
+  "outer_test": "official_5fold_kFold_1_fixed_before_training",
+  "split_case_fractions": {
+    "train": 0.55,
+    "tune": 0.15,
+    "calibrate": 0.1,
+    "test": 0.2
+  },
+  "split_note": "Approximate proportions; preserve official outer test and rebuild inner Case-grouped partitions. Never use official valid_i columns.",
+  "threshold_calibration_sensitivity_target": 0.95,
+  "threshold_target_is_research_setting_not_clinical_standard": true,
+  "bootstrap_group_draws": 2000,
+  "patient_mapping_requirement": "Verify Case-to-patient mapping; if multiple Cases belong to one patient, merge groups before splitting and bootstrap.",
+  "outer_split_override": "If any verified patient crosses official folds, rebuild the outer split by patient before training. Official Case counts then remain audit facts only.",
+  "additional_folds": "Decide before unsealing test. After development on fold 1, other folds are supporting analysis, not independent confirmation; nested model selection and calibration must exclude each outer test fold.",
+  "published_pathology_labels": "Retain published binary labels for primary benchmark; preregister a sensitivity analysis excluding pure LCIS BUS-BRA Cases 245 and 993, and BrEaST Case 59. Do not exclude mixed invasive carcinoma and LCIS.",
+  "test_selection_forbidden": true,
+  "external_primary": "BrEaST_biopsy_confirmed_subset_audited_before_evaluation",
+  "external_biopsy_confirmed_cases": 197,
+  "external_benign_cases": 99,
+  "external_malignant_cases": 98
+}

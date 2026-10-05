@@ -1,0 +1,8 @@
+{
+  "command": "python -m pytest -q",
+  "status": "passed",
+  "tests_passed": 72,
+  "subtests_passed": 41,
+  "runtime_seconds": 0.65,
+  "source": "Observed final pytest output on 2026-10-04"
+}

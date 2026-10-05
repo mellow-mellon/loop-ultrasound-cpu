@@ -1,0 +1,30 @@
+{
+  "status": "completed",
+  "execution_date": "2026-10-04",
+  "training_runs": 12,
+  "training_seeds": [
+    17,
+    29,
+    43
+  ],
+  "epochs_per_run": 50,
+  "optimizer_updates_per_run": 3200,
+  "optimizer_updates_total": 38400,
+  "training_device": "cpu",
+  "model_dtype": "float32",
+  "threads_per_training_process": 2,
+  "maximum_concurrent_training_processes": 2,
+  "concurrent_runs": [
+    "SC-seed43",
+    "SJ-seed43"
+  ],
+  "execution_strategy": "Main fixed launcher; independent helper completed SC43/SJ43 while main trained different seeds. Main reused those completed matching runs. Helper stopped before UC43 at a deliberate collision guard.",
+  "launcher_elapsed_seconds_including_overlapped_helper_runs": 2566.765641791979,
+  "sum_recorded_training_loop_seconds": 3056.924110289081,
+  "training_loop_timing_scope": "Includes periodic development evaluation; excludes feature precomputation. Some runs overlap, so sum is not elapsed wall time and per-arm timings are not a fair latency benchmark.",
+  "training_source_sha256": "08184ccaaca1cc8d69e27e3c307841e40a3c4148503b07e70800ce3225d9ae75",
+  "all_run_source_digests_match_locked_protocol": true,
+  "all_runs_exactly_50_epochs_and_3200_updates": true,
+  "calibration_and_test_predictions": false,
+  "clinical_validation": false
+}

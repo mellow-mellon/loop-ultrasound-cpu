@@ -1,0 +1,126 @@
+{
+  "status": "executed_cpu_preexperiment_baselines",
+  "clinical_validation": false,
+  "patient_mapping": "unverified_Case_grouped_only",
+  "device": "cpu",
+  "selection_seed": 20261004,
+  "cohort_fingerprints": {
+    "train": "f407cbbad125ab0c4ce7de1c80fdf1cad5e4e0a7f2d7556fa710438603f5ef3e",
+    "tune": "b230c7456222a5b7757d2309f31c604cd9a57cb870d0b2e58120686e6abce8a8"
+  },
+  "fingerprint_definition": "sha256 of UTF-8 compact ensure_ascii JSON sorted [str(case_id),str(image_id),int(label)] rows; paths excluded",
+  "cohorts": {
+    "train": {
+      "n_cases": 128,
+      "n_images": 227,
+      "n_positive": 41,
+      "n_negative": 87
+    },
+    "tune": {
+      "n_cases": 159,
+      "n_images": 281,
+      "n_positive": 51,
+      "n_negative": 108
+    }
+  },
+  "method": {
+    "feature_shape_per_image": [
+      196,
+      192
+    ],
+    "feature_pooling": "mean spatial tokens per image, then mean all available image features per Case",
+    "view_difference_from_loop_training": "all-view Case mean here; loop training samples one image per Case per epoch",
+    "fit_split": "train",
+    "scaler_fit_split": "train",
+    "hyperparameters_selected_using_tune": false,
+    "train_case_prevalence": 0.3203125,
+    "logistic_regression": {
+      "C": 1.0,
+      "solver": "lbfgs",
+      "max_iter": 2000,
+      "random_state": 17,
+      "class_weight": null,
+      "fit_intercept": true,
+      "n_iter": 32
+    },
+    "threshold": 0.5,
+    "segmentation": "not performed by classification controls"
+  },
+  "timing_seconds": {
+    "fit_and_predict_excluding_encoder": 0.0074002090259455144
+  },
+  "baselines": {
+    "constant": {
+      "train": {
+        "n_cases": 128,
+        "n_positive": 41,
+        "n_negative": 87,
+        "brier": 0.21771240234375,
+        "nll": 0.6271047869053563,
+        "nll_clip_epsilon": 1e-15,
+        "auroc": 0.5,
+        "threshold": 0.5,
+        "sensitivity": 0.0,
+        "specificity": 1.0,
+        "tp": 0,
+        "tn": 87,
+        "fp": 0,
+        "fn": 41
+      },
+      "tune": {
+        "n_cases": 159,
+        "n_positive": 51,
+        "n_negative": 108,
+        "brier": 0.21787132407134435,
+        "nll": 0.6274374826830466,
+        "nll_clip_epsilon": 1e-15,
+        "auroc": 0.5,
+        "threshold": 0.5,
+        "sensitivity": 0.0,
+        "specificity": 1.0,
+        "tp": 0,
+        "tn": 108,
+        "fp": 0,
+        "fn": 51
+      }
+    },
+    "logistic_regression": {
+      "train": {
+        "n_cases": 128,
+        "n_positive": 41,
+        "n_negative": 87,
+        "brier": 0.005020664755980026,
+        "nll": 0.0501465714169373,
+        "nll_clip_epsilon": 1e-15,
+        "auroc": 1.0,
+        "threshold": 0.5,
+        "sensitivity": 1.0,
+        "specificity": 1.0,
+        "tp": 41,
+        "tn": 87,
+        "fp": 0,
+        "fn": 0
+      },
+      "tune": {
+        "n_cases": 159,
+        "n_positive": 51,
+        "n_negative": 108,
+        "brier": 0.2584317085437054,
+        "nll": 1.330313075083268,
+        "nll_clip_epsilon": 1e-15,
+        "auroc": 0.6761074800290486,
+        "threshold": 0.5,
+        "sensitivity": 0.47058823529411764,
+        "specificity": 0.7962962962962963,
+        "tp": 24,
+        "tn": 86,
+        "fp": 22,
+        "fn": 27
+      }
+    }
+  },
+  "sources": {
+    "encoder_sha256": "d2169b631631699b652d392db7647472cf194a9d01fe402ff11470c4dd374eb0",
+    "manifest_sha256": "47a065ec48faca9fb37c17f841a1c2414a6bd902e55f3c93a90dba3df3eaf0ac"
+  }
+}

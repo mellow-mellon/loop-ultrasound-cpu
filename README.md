@@ -81,7 +81,7 @@ done
 
 The pilot uses 4 benign + 4 malignant training Cases, all their available views, seed 17 and no augmentation. Frozen unaugmented encoder features are cached. The loss is averaged across all four trained readouts: classification BCE plus `0.5 × valid-pixel BCE + 0.5 × soft Dice loss`. A detached mask branch still trains its decoder. AdamW uses pilot learning rate 0.001. The loader has zero workers and one/two CPU threads are allowed. Completed runs are never overwritten.
 
-Each run saves a local checkpoint, loss history and per-image predictions, plus an aggregate summary. The fixed-seed 16-Case tune subset is label-blind. A different `--seed` currently also changes subset selection; multi-seed scientific analysis must fix the cohort separately before comparing seeds. Passing `--eval-max-cases 0` disables tune evaluation. An online encoder/no-cache run is also supported; augmentation and feature caching cannot be combined.
+Each run saves a local checkpoint, loss history and per-image predictions, plus an aggregate summary. The fixed-seed 16-Case tune subset is label-blind. In this tiny-run command, a different `--seed` also changes subset selection; the expanded experiment below instead fixes an independent `--selection-seed` across training seeds. Passing `--eval-max-cases 0` disables tune evaluation. An online encoder/no-cache run is also supported; augmentation and feature caching cannot be combined.
 
 ### 5. Metrics, alignment and CPU timing
 
@@ -106,7 +106,7 @@ See [CPU results](docs/CPU_RESULTS.md), [implementation selfcheck](reports/model
 
 ## Expanded CPU screen: 128 training Cases, three seeds
 
-The next experiment fixes a proportional training cohort (87 benign / 41 malignant Cases, 227 images) and all 159 tune Cases (281 images). Cohort selection seed 20261004 is independent of training seeds 17/29/43. Four arms each train 50 epochs at learning rate 0.0003, batch 2, without augmentation. All models report the final epoch; periodic development evaluation every five epochs is diagnostic and does not select a checkpoint.
+This experiment fixes a proportional training cohort (87 benign / 41 malignant Cases, 227 images) and all 159 tune Cases (281 images). Cohort selection seed 20261004 is independent of training seeds 17/29/43. Four arms each train 50 epochs at learning rate 0.0003, batch 2, without augmentation. All models report the final epoch; periodic development evaluation every five epochs is diagnostic and does not select a checkpoint.
 
 ```bash
 python -m pip install '.[experiment,plot]'
@@ -129,6 +129,13 @@ Two controls fit only training Cases: a constant probability equal to the traini
 Analysis retains every training seed, validates the same Cases/views/labels across twelve runs, and averages seed-specific effects within each Case before a paired Case bootstrap. It does not treat three predictions of the same Case as three independent people. Mean AUROC/Brier across runs is distinct from evaluating a prediction ensemble.
 
 The planned resource decision is to inspect both diagnostic ranking and probability quality, plus the consistency of depth benefits and the sharing×supervision interaction. Positive development results still require patient grouping verification, external evaluation and novelty review before a clinical or scientific claim. The full proposed 100-epoch protocol remains separate from this no-augmentation CPU screen.
+
+Executed results are in [the expanded CPU report](docs/CPU_EXPANDED128_RESULTS.md), with all twelve aggregate run summaries, paired analysis and scientific figures in [reports/expanded128](reports/expanded128/). To regenerate figures from these public aggregate records:
+
+```bash
+python -m loop_ultrasound.plot_expanded --report-dir reports/expanded128 \
+  --output-dir outputs/expanded128-figures
+```
 
 Before a formal study:
 

@@ -20,9 +20,11 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader, Sampler
 
-from .data import UltrasoundDataset, balanced_train_rows, load_manifest
+from .data import UltrasoundDataset, load_manifest
 from .metrics import aggregate_cases, classification_metrics
 from .models import create_encoder, make_model, trajectory_loss
+from .cohort import select_training_rows, cohort_fingerprint, training_source_fingerprint
+from .feature_cache import load_or_encode
 
 
 class CaseViewSampler(Sampler[int]):
@@ -60,7 +62,8 @@ def parameter_groups(model):
 
 
 def prepare_features(encoder, dataset, batch_size):
-    loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=0)
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=0,
+                        generator=torch.Generator().manual_seed(0))
     features = []
     start = time.perf_counter()
     with torch.no_grad():
@@ -78,7 +81,8 @@ def mask_dice(logits, target, valid):
 
 def evaluate(model, encoder, rows, args, *, cache=None):
     dataset = UltrasoundDataset(rows, image_size=224, augment=False)
-    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, num_workers=0)
+    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, num_workers=0,
+                        generator=torch.Generator().manual_seed(0))
     records, offset = [], 0
     model.eval()
     with torch.no_grad():
@@ -94,6 +98,7 @@ def evaluate(model, encoder, rows, args, *, cache=None):
                         "case_id": batch["case_id"][i], "image_id": batch["image_id"][i],
                         "label": int(batch["label"][i]), "probability": probabilities[i],
                         "step": step, "arm": args.arm, "seed": args.seed, "dice": dice[i],
+                        "split": rows[offset+i]["split"],
                     })
             offset += b
     case_rows = aggregate_cases(records)
@@ -116,10 +121,14 @@ def write_records(path, records):
 
 
 def run(args):
-    if args.epochs <= 0 or args.batch_size <= 0 or args.max_cases < 2 or args.max_cases % 2:
-        raise ValueError("Use positive epochs/batch and a positive even max-cases >= 2.")
+    if args.epochs <= 0 or args.batch_size <= 0 or args.max_cases < 2:
+        raise ValueError("Use positive epochs/batch and max-cases >= 2.")
     if args.cache_features and args.augment:
         raise ValueError("Caching is for unaugmented engineering checks only.")
+    if args.feature_cache_dir and not args.cache_features:
+        raise ValueError("feature-cache-dir requires cache-features.")
+    if args.eval_every < 0 or (args.eval_every and not args.eval_max_cases):
+        raise ValueError("eval-every requires development evaluation and a nonnegative interval.")
     if args.threads not in (1, 2) or args.eval_max_cases < 0:
         raise ValueError("Use one/two CPU threads and nonnegative eval-max-cases.")
     if not math.isfinite(args.learning_rate) or args.learning_rate <= 0:
@@ -134,9 +143,13 @@ def run(args):
     if (run_dir / "summary.json").exists():
         raise FileExistsError("Use a fresh run directory; completed results are never overwritten.")
     all_rows = load_manifest(args.manifest)
-    train_rows = balanced_train_rows(all_rows, max_cases_per_class=args.max_cases // 2, seed=args.seed)
+    selection_seed = args.seed if args.selection_seed is None else args.selection_seed
+    train_rows = select_training_rows(all_rows, args.max_cases, sampling=args.sampling, selection_seed=selection_seed)
     if len({r["case_id"] for r in train_rows}) != args.max_cases:
-        raise ValueError("The requested balanced training subset is unavailable.")
+        raise ValueError("The requested training subset is unavailable.")
+    tune_rows = case_subset([r for r in all_rows if r["split"] == "tune"], args.eval_max_cases, selection_seed) if args.eval_max_cases else []
+    if {r["case_id"] for r in tune_rows} & {r["case_id"] for r in train_rows}:
+        raise ValueError("Train/tune Case overlap.")
     dataset = UltrasoundDataset(train_rows, image_size=224, augment=args.augment)
     encoder = create_encoder(pretrained=True, weights_path=args.encoder_weights)
     torch.manual_seed(args.seed)  # Pair core/head initialization independent of encoder creation.
@@ -144,14 +157,24 @@ def run(args):
     core, mask = parameter_groups(model)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=.01)
     cached, encoding_seconds = None, 0.
+    tune_cache, cache_reused = None, None
     if args.cache_features:
-        cache_dataset = UltrasoundDataset(train_rows, image_size=224, augment=False)
-        cached, encoding_seconds = prepare_features(encoder, cache_dataset, args.batch_size)
+        if args.feature_cache_dir:
+            cached, encoding_seconds, cache_reused = load_or_encode(encoder, train_rows, args.encoder_weights,
+                                                                   args.feature_cache_dir, args.batch_size)
+            if tune_rows:
+                tune_cache, _, _ = load_or_encode(encoder, tune_rows, args.encoder_weights,
+                                                 args.feature_cache_dir, args.batch_size)
+        else:
+            cache_dataset = UltrasoundDataset(train_rows, image_size=224, augment=False)
+            cached, encoding_seconds = prepare_features(encoder, cache_dataset, args.batch_size)
         feature_index = {r["image_id"]: i for i, r in enumerate(train_rows)}
     loader = DataLoader(dataset, batch_size=args.batch_size,
-                        sampler=CaseViewSampler(train_rows, args.seed), num_workers=0)
+                        sampler=CaseViewSampler(train_rows, args.seed), num_workers=0,
+                        generator=torch.Generator().manual_seed(args.seed))
     _, initial = evaluate(model, encoder, train_rows, args, cache=cached)
     history, step_seconds = [], []
+    development_history = []
     start = time.perf_counter()
     for epoch in range(args.epochs):
         model.train()
@@ -175,8 +198,16 @@ def run(args):
             losses.append(float(loss.detach()))
             step_seconds.append(time.perf_counter() - tick)
         history.append({"epoch": epoch+1, "mean_training_objective": float(np.mean(losses))})
+        if args.eval_every and (epoch+1) % args.eval_every == 0:
+            _, snapshot = evaluate(model, encoder, tune_rows, args, cache=tune_cache)
+            development_history.append({"epoch": epoch+1, "by_step": snapshot})
         if epoch == 0 or (epoch+1) % 5 == 0 or epoch+1 == args.epochs:
             print(json.dumps(history[-1]), flush=True)
+            if development_history and development_history[-1]["epoch"] == epoch+1:
+                last = development_history[-1]["by_step"][str(args.steps)]
+                print(json.dumps({"epoch": epoch+1, "development_brier_step4": last["brier"],
+                                  "development_auroc_step4": last["auroc"],
+                                  "development_dice_step4": last["mean_case_dice"]}), flush=True)
     training_seconds = time.perf_counter() - start
     train_records, final = evaluate(model, encoder, train_rows, args, cache=cached)
     write_records(run_dir / "training_predictions.csv", train_records)
@@ -185,10 +216,7 @@ def run(args):
                run_dir / "checkpoint.pt")
     development = None
     if args.eval_max_cases:
-        tune_rows = case_subset([r for r in all_rows if r["split"] == "tune"], args.eval_max_cases, args.seed)
-        if {r["case_id"] for r in tune_rows} & {r["case_id"] for r in train_rows}:
-            raise ValueError("Train/tune Case overlap.")
-        tune_records, development = evaluate(model, encoder, tune_rows, args)
+        tune_records, development = evaluate(model, encoder, tune_rows, args, cache=tune_cache)
         write_records(run_dir / "development_predictions.csv", tune_records)
     summary = {
         "status": "executed_cpu_engineering_pilot", "clinical_validation": False,
@@ -198,8 +226,17 @@ def run(args):
         "config": {"arm": args.arm, "steps": args.steps, "seed": args.seed,
                    "epochs": args.epochs, "batch_size": args.batch_size,
                    "learning_rate": args.learning_rate, "segmentation_weight": args.segmentation_weight,
-                   "cached_frozen_features": args.cache_features, "augment": args.augment},
+                   "cached_frozen_features": args.cache_features, "augment": args.augment,
+                   "selection_seed": selection_seed, "sampling": args.sampling, "eval_every": args.eval_every},
+        "cohort_selection": {"sampling": args.sampling, "selection_seed": selection_seed,
+                             "train_fingerprint": cohort_fingerprint(train_rows),
+                             "tune_fingerprint": cohort_fingerprint(tune_rows)},
+        "evaluation_split": "tune_development" if tune_rows else None,
+        "model_selection": "fixed_final_epoch_no_best_epoch_selection",
+        "eval_every": args.eval_every,
+        "feature_cache_reused": cache_reused,
         "n_training_cases": args.max_cases, "n_training_images": len(train_rows),
+        "training_source_sha256": training_source_fingerprint(),
         "manifest_sha256": hashlib.sha256(Path(args.manifest).read_bytes()).hexdigest(),
         "encoder_sha256": hashlib.sha256(Path(args.encoder_weights).read_bytes()).hexdigest(),
         "parameters": {"encoder_frozen": sum(p.numel() for p in encoder.parameters()),
@@ -208,6 +245,7 @@ def run(args):
                        "trainable": sum(p.numel() for p in model.parameters())},
         "initial_training_fit": initial, "final_training_fit": final,
         "development_subset": development,
+        "development_history": development_history,
         "training_seconds": training_seconds, "frozen_feature_precompute_seconds": encoding_seconds,
         "timing": {"updates": len(step_seconds),
                    "median_training_step_seconds": float(np.median(step_seconds)),
@@ -239,10 +277,15 @@ def parser():
     p.add_argument("--learning-rate", type=float, default=.001)
     p.add_argument("--segmentation-weight", type=float, default=1.)
     p.add_argument("--seed", type=int, default=17)
+    p.add_argument("--selection-seed", type=int, default=None,
+                   help="Fixed cohort choice independent of initialization; legacy default uses seed.")
+    p.add_argument("--sampling", choices=["balanced", "proportional"], default="balanced")
     p.add_argument("--threads", type=int, default=2)
     p.add_argument("--cache-features", action="store_true")
+    p.add_argument("--feature-cache-dir", default=None)
     p.add_argument("--augment", action="store_true")
     p.add_argument("--eval-max-cases", type=int, default=16)
+    p.add_argument("--eval-every", type=int, default=0)
     return p
 
 

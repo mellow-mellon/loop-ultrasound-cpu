@@ -104,6 +104,32 @@ The benchmark includes the frozen encoder, four refinement applications, all-ste
 
 See [CPU results](docs/CPU_RESULTS.md), [implementation selfcheck](reports/model_selfcheck.json), aggregate pilot summaries and timing/analysis JSON in `reports/`. Images, case-level manifests, individual predictions, model weights and environment files remain local and are ignored by Git.
 
+## Expanded CPU screen: 128 training Cases, three seeds
+
+The next experiment fixes a proportional training cohort (87 benign / 41 malignant Cases, 227 images) and all 159 tune Cases (281 images). Cohort selection seed 20261004 is independent of training seeds 17/29/43. Four arms each train 50 epochs at learning rate 0.0003, batch 2, without augmentation. All models report the final epoch; periodic development evaluation every five epochs is diagnostic and does not select a checkpoint.
+
+```bash
+python -m pip install '.[experiment,plot]'
+python -m loop_ultrasound.expanded --output-dir outputs/cpu-expanded128 --threads 2
+python -m loop_ultrasound.analyze_expanded --run-dirs \
+  outputs/cpu-expanded128/SC-seed17 outputs/cpu-expanded128/SJ-seed17 \
+  outputs/cpu-expanded128/UC-seed17 outputs/cpu-expanded128/UJ-seed17 \
+  outputs/cpu-expanded128/SC-seed29 outputs/cpu-expanded128/SJ-seed29 \
+  outputs/cpu-expanded128/UC-seed29 outputs/cpu-expanded128/UJ-seed29 \
+  outputs/cpu-expanded128/SC-seed43 outputs/cpu-expanded128/SJ-seed43 \
+  outputs/cpu-expanded128/UC-seed43 outputs/cpu-expanded128/UJ-seed43 \
+  --baseline-dir outputs/cpu-expanded128/baselines \
+  --output outputs/cpu-expanded128/expanded_analysis.json
+```
+
+The launcher writes an immutable protocol before training and reuses completed runs only if their config, source-code, encoder, manifest and cohort digests match. Cached features are bound to ordered image IDs, source image bytes, encoder weights and preprocessing. Caching is restricted to train/tune pixels. Evaluation uses its own DataLoader RNG so monitoring does not change the training random sequence. The recorded training-loop wall time includes periodic development evaluation.
+
+Two controls fit only training Cases: a constant probability equal to the training malignancy proportion, and standardized frozen features plus fixed `C=1` logistic regression. The latter averages all view features before Case classification; the loop models train on one sampled view and average view probabilities at evaluation. It is a simple reference with a documented aggregation difference, not a precisely matched architecture control.
+
+Analysis retains every training seed, validates the same Cases/views/labels across twelve runs, and averages seed-specific effects within each Case before a paired Case bootstrap. It does not treat three predictions of the same Case as three independent people. Mean AUROC/Brier across runs is distinct from evaluating a prediction ensemble.
+
+The planned resource decision is to inspect both diagnostic ranking and probability quality, plus the consistency of depth benefits and the sharing×supervision interaction. Positive development results still require patient grouping verification, external evaluation and novelty review before a clinical or scientific claim. The full proposed 100-epoch protocol remains separate from this no-augmentation CPU screen.
+
 Before a formal study:
 
 1. Verify Case-to-patient mapping, merge any repeated patient groups, and remake partitions if needed. Exact hashes do not replace near-duplicate or patient identity review.

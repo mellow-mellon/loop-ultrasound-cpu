@@ -1,0 +1,51 @@
+{
+  "arms": [
+    "SC",
+    "SJ",
+    "UC",
+    "UJ"
+  ],
+  "augment": false,
+  "batch_size": 2,
+  "cached_frozen_features": true,
+  "calibration_and_test_predictions": false,
+  "clinical_validation": false,
+  "device": "cpu",
+  "encoder_sha256": "d2169b631631699b652d392db7647472cf194a9d01fe402ff11470c4dd374eb0",
+  "epochs": 50,
+  "eval_every": 5,
+  "learning_rate": 0.0003,
+  "manifest_sha256": "47a065ec48faca9fb37c17f841a1c2414a6bd902e55f3c93a90dba3df3eaf0ac",
+  "model_selection": "fixed_final_epoch_no_best_epoch_selection",
+  "patient_mapping": "unverified_Case_grouped_only",
+  "sampling": "proportional",
+  "screening_rules": [
+    "Require useful development classification relative to train-only constant/simple-feature baselines.",
+    "Inspect depth benefit and interaction direction across all three seeds; no best-seed reporting.",
+    "A positive CPU screen does not establish clinical benefit or novelty; no p-value gate."
+  ],
+  "seeds": [
+    17,
+    29,
+    43
+  ],
+  "segmentation_weight": 1.0,
+  "selection_seed": 20261004,
+  "status": "fixed_before_expanded_training",
+  "threads": 2,
+  "train": {
+    "benign": 87,
+    "cases": 128,
+    "fingerprint": "f407cbbad125ab0c4ce7de1c80fdf1cad5e4e0a7f2d7556fa710438603f5ef3e",
+    "images": 227,
+    "malignant": 41
+  },
+  "training_source_sha256": "08184ccaaca1cc8d69e27e3c307841e40a3c4148503b07e70800ce3225d9ae75",
+  "tune": {
+    "benign": 108,
+    "cases": 159,
+    "fingerprint": "b230c7456222a5b7757d2309f31c604cd9a57cb870d0b2e58120686e6abce8a8",
+    "images": 281,
+    "malignant": 51
+  }
+}

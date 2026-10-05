@@ -11,6 +11,8 @@ dependencies = ["torch>=2.5", "timm>=1.0", "numpy>=1.26", "Pillow>=10"]
 
 [project.optional-dependencies]
 test = ["pytest>=8", "scikit-learn>=1.4"]
+experiment = ["scikit-learn>=1.4"]
+plot = ["matplotlib>=3.8"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -260,6 +260,42 @@ python -m loop_ultrasound.plot_case_expansion \
   --output-dir outputs/case-expansion-figures
 ```
 
+## CPU 256-Case replication: five additional paired seeds
+
+The next fixed-budget replication adds seeds 53, 71, 89, 107 and 131 at 256 Cases, with separately trained terminal-only depths 2/4. Each fresh fit uses the same 25 epochs and 3,200 updates as the original 256-Case experiment, paired to its own existing 128-Case, 50-epoch fit. The five new seeds are primary; the original three and an explicitly separated eight-seed combined description are secondary. See [the prespecified plan](docs/CPU_CASE_EXPANSION_REPLICATION_PLAN.md) and [locked configuration](configs/cpu_case_expansion256_replication.json).
+
+```bash
+python -m loop_ultrasound.case_expansion_replication --prepare-only --threads 2
+python -m loop_ultrasound.case_expansion_replication --threads 2
+```
+
+The defaults use `outputs/cpu-seed-replication128` for paired references and `outputs/cpu-case-expansion256` for the original expansion protocol and fixed 256-Case controls. Preparation verifies all ten reference summaries and reuses the identical frozen-feature cache and byte-bound baseline artifacts. Two disjoint workers can use `--workers 2 --worker-index 0` and `1`, each with two CPU threads. Fresh trainable weights match each seed's earlier initialization; the core training source stays unchanged. There is no new success gate, model-selection change or automatic larger/GPU experiment.
+
+After all ten new fits complete, analyze the five new pairs as primary, with the earlier three pairs and the eight-seed combination explicitly secondary:
+
+```bash
+python -m loop_ultrasound.analyze_case_expansion \
+  --protocol outputs/cpu-case-expansion256-replication/protocol.json \
+  --run-dirs outputs/cpu-case-expansion256-replication/SJ-depth*-terminal-seed* \
+  --reference-protocol outputs/cpu-seed-replication128/protocol.json \
+  --reference-run-dirs outputs/cpu-seed-replication128/SJ-depth*-terminal-seed* \
+  --baseline-dir outputs/cpu-case-expansion256/baselines \
+  --reference-baseline-dir outputs/cpu-expanded128/baselines \
+  --secondary-protocol outputs/cpu-case-expansion256/protocol.json \
+  --secondary-run-dirs outputs/cpu-case-expansion256/SJ-depth*-terminal-seed* \
+  --secondary-reference-protocol outputs/cpu-depth-supervision128/protocol.json \
+  --secondary-reference-run-dirs outputs/cpu-depth-supervision128/SJ-depth*-terminal-seed* \
+  --output outputs/cpu-case-expansion256-replication/case_expansion_analysis.json
+
+python -m loop_ultrasound.plot_case_expansion \
+  --report-dir reports/case_expansion256_replication \
+  --reference-report-dir reports/seed_replication128 \
+  --protocol configs/cpu_case_expansion256_replication.json \
+  --output-dir outputs/case-expansion-replication-figures
+```
+
+The figures show only the five new seeds: endpoint means, optimizer-update learning curves, and each paired seed's depth benefit, interaction and direct data-size benefit. Conditional Case intervals and leave-one-seed-out means describe the locked fitted models and do not establish clinical utility.
+
 ## Data and code attribution
 
 BUS-BRA is described in [the dataset publication](https://pubmed.ncbi.nlm.nih.gov/37937827/) and distributed under CC-BY-4.0 on Zenodo. Download it from the official source; it is not bundled here. Follow the authors' citation requirements when reporting experiments. The encoder's upstream license applies to its weights. This repository's original code is MIT; the authors' MATLAB training implementation was not copied. Do not upload `data/`, `outputs/`, weights or individual prediction files to this public repository.

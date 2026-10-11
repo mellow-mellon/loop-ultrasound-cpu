@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "command": "PYTHONPATH=src .venv/bin/python -m pytest -q",
+  "tests_passed": 389,
+  "subtests_passed": 41,
+  "elapsed_seconds": 6.7,
+  "execution_date": "2026-10-11",
+  "scope": "All prior checks plus five-seed source/cohort/initialization and baseline artifact protections, strict ten-plus-ten paired analysis, explicitly separate original-three/eight-seed secondary summaries, and five-seed aggregate figure alignment."
+}

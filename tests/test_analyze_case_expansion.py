@@ -6,10 +6,10 @@ import json
 import numpy as np
 import pytest
 
-from loop_ultrasound.analyze_case_expansion import analyze_case_expansion,main
+from loop_ultrasound.analyze_case_expansion import NEW_SEEDS,analyze_case_expansion,main
 from loop_ultrasound.analyze_expanded import _fingerprint
 from loop_ultrasound.metrics import aggregate_cases,classification_metrics
-from test_analyze_seed_replication import (REFERENCE_SEEDS,cohort,csv_edit,csv_read,csv_write,
+from test_analyze_seed_replication import (GATE,REFERENCE_SEEDS,cohort,csv_edit,csv_read,csv_write,
                                           json_edit,make_protocol,make_runs,metrics,update_endpoint)
 
 
@@ -93,6 +93,62 @@ def make_baselines(directory,runs):
               ("baseline","split","seed","case_id","label","probability","n_images"))
     (directory/"baselines_summary.json").write_text(json.dumps(summary))
     return directory
+
+
+@pytest.fixture
+def replication(experiment,tmp_path):
+    original = json.loads(experiment["protocol"].read_text())
+    reference = make_protocol(NEW_SEEDS,"fixed_before_seed_replication_training")
+    reference.update(phase="exploratory_training_randomness_replication_on_observed_tune",
+                     supervisions=["terminal"],reference_seeds=list(REFERENCE_SEEDS),screening_gate=dict(GATE),
+                     reference_protocol_sha256=hashlib.sha256(experiment["old_protocol"].read_bytes()).hexdigest())
+    reference_path = tmp_path/"replication_reference.json"
+    reference_path.write_text(json.dumps(reference))
+    protocol = copy.deepcopy(original)
+    protocol.update(status="fixed_before_case_expansion_seed_replication_training",
+                    phase="exploratory_nested_case_expansion_training_randomness_replication_on_observed_tune",
+                    seeds=list(NEW_SEEDS),reference_seeds=list(NEW_SEEDS),historical_seed_scope="original_three_secondary_only",
+                    initialization_sha256_by_seed=copy.deepcopy(reference["initialization_sha256_by_seed"]),
+                    reference_protocol_sha256=hashlib.sha256(reference_path.read_bytes()).hexdigest(),
+                    original_expansion_protocol_sha256=hashlib.sha256(experiment["protocol"].read_bytes()).hexdigest())
+    protocol_path = tmp_path/"replication.json"
+    protocol_path.write_text(json.dumps(protocol))
+    old_runs = make_runs(tmp_path/"replication_old",NEW_SEEDS,reference)
+    new_runs = make_runs(tmp_path/"replication_new",NEW_SEEDS,reference)
+    for directory in new_runs:
+        fields,rows = csv_read(directory/"training_predictions.csv")
+        extras = []
+        for row in rows:
+            candidate = copy.deepcopy(row)
+            label = row["label"]
+            candidate.update(case_id=f"private_extra_case{label}",image_id=f"private_extra_image{label}")
+            extras.append(candidate)
+        csv_write(directory/"training_predictions.csv",rows+extras,fields)
+        json_edit(directory/"summary.json",lambda s:s["config"].update(epochs=25))
+        json_edit(directory/"summary.json",lambda s:s.update(n_training_cases=4,n_training_images=4))
+        json_edit(directory/"summary.json",lambda s:s["cohort_selection"].update(train_fingerprint=protocol["train"]["fingerprint"]))
+        if "depth4" in directory.name:
+            seed = int(directory.name.split("seed")[-1])
+            update_endpoint(directory,(.1,.2,.3,.4,.5)[NEW_SEEDS.index(seed)])
+        summary = json.loads((directory/"summary.json").read_text())
+        summary["development_history"] = [{"epoch":epoch,"by_step":copy.deepcopy(summary["development_subset"])} for epoch in range(5,26,5)]
+        (directory/"summary.json").write_text(json.dumps(summary))
+    baseline_dirs = {"new256":make_baselines(tmp_path/"replication_new_baselines",new_runs),
+                     "reference128":make_baselines(tmp_path/"replication_reference_baselines",old_runs)}
+    protocol["baseline_artifact_bindings"] = {size:{
+        "summary_sha256":hashlib.sha256((directory/"baselines_summary.json").read_bytes()).hexdigest(),
+        "predictions_sha256":hashlib.sha256((directory/"baseline_case_predictions.csv").read_bytes()).hexdigest()}
+        for size,directory in baseline_dirs.items()}
+    protocol_path.write_text(json.dumps(protocol))
+    return {"runs":new_runs,"protocol":protocol_path,"old_runs":old_runs,"old_protocol":reference_path,
+            "original":experiment,"baseline_dirs":baseline_dirs}
+
+
+def analyze_replication(replication,*,secondary=False,**kwargs):
+    original = replication["original"]
+    optional = {"secondary_run_dirs":original["runs"],"secondary_protocol_path":original["protocol"],
+                "secondary_reference_run_dirs":original["old_runs"],"secondary_reference_protocol_path":original["old_protocol"]} if secondary else {}
+    return analyze(replication,**optional,**kwargs)
 
 
 def test_known_endpoint_gain_and_nested_data_size_interaction(experiment):
@@ -304,3 +360,115 @@ def test_cli_publishes_aggregate_only_and_refuses_overwrite(experiment,tmp_path,
     with pytest.raises(SystemExit):
         main(args)
     assert output.read_bytes()==before
+
+
+def test_five_new_seeds_are_primary_with_correct_metrics_and_leave_one_out(replication):
+    report = analyze_replication(replication)
+    expected = .4**2-np.array([.1,.2,.3,.4,.5])**2
+    assert report["training_seeds"] == list(NEW_SEEDS)
+    assert report["primary_seed_role"] == "five_new_seed_replication"
+    assert report["primary_256"]["n_seeds"] == 5
+    assert report["primary_256"]["depth_benefit_Brier"]["mean"] == pytest.approx(expected.mean())
+    assert report["primary_256"]["depth_benefit_Brier"]["std_across_training_seeds"] == pytest.approx(expected.std(ddof=1))
+    assert [row["seed"] for row in report["primary_256"]["depth_benefit_Brier"]["by_seed"]] == list(NEW_SEEDS)
+    assert [row["mean_gain"] for row in report["primary_256"]["leave_one_seed_out"]] == pytest.approx(
+        [np.delete(expected,index).mean() for index in range(5)])
+    assert report["primary_256"]["depth_benefit_Brier"]["bootstrap"]["n_cases"] == 2
+    assert report["primary_256"]["depth_benefit_Brier"]["bootstrap"]["n_fitted_seeds"] == 5
+    assert report["secondary_combined_eight_seeds"] is None
+    assert report["decision_rule_automatically_applied"] is False
+
+
+def test_original_three_and_combined_eight_are_explicit_secondary_without_replacing_primary(replication):
+    report = analyze_replication(replication,secondary=True)
+    primary = report["primary_256"]["depth_benefit_Brier"]["mean"]
+    original = report["secondary_original_three_seeds"]
+    combined = report["secondary_combined_eight_seeds"]
+    assert original["training_seeds"] == list(REFERENCE_SEEDS)
+    assert combined["training_seeds"] == list(REFERENCE_SEEDS+NEW_SEEDS)
+    assert combined["primary_256"]["n_seeds"] == 8
+    assert combined["primary_256"]["depth_benefit_Brier"]["mean"] == pytest.approx(
+        (primary*5+original["primary_256"]["depth_benefit_Brier"]["mean"]*3)/8)
+    assert combined["primary_256"]["depth_benefit_Brier"]["mean"] > primary
+    assert original["can_override_primary"] is False
+    assert combined["can_override_primary"] is False
+    assert report["primary_256"]["n_seeds"] == 5
+    assert len(report["primary_256"]["seed_results"]) == 5
+
+
+def test_secondary_uncertainty_still_resamples_cases_not_eight_seed_case_pairs(replication):
+    combined = analyze_replication(replication,secondary=True)["secondary_combined_eight_seeds"]
+    for effect in (combined["primary_256"]["depth_benefit_Brier"],combined["interaction_data_size_depth"]):
+        assert effect["bootstrap"]["n_cases"] == 2
+        assert effect["bootstrap"]["n_fitted_seeds"] == 8
+        assert effect["bootstrap"]["includes_training_seed_sampling_uncertainty"] is False
+        assert effect["ci95"] == pytest.approx([effect["estimate"],effect["estimate"]])
+
+
+@pytest.mark.parametrize("which",["runs","old_runs"])
+def test_five_seed_mode_requires_ten_fits_at_each_size(replication,which):
+    replication[which] = replication[which][:-1]
+    with pytest.raises(ValueError,match="distinct"):
+        analyze_replication(replication)
+
+
+def test_original_seed_cannot_be_mixed_into_new_primary_runset(replication):
+    json_edit(replication["runs"][-1]/"summary.json",lambda s:s["config"].update(seed=43))
+    with pytest.raises(ValueError,match="expected paired seed"):
+        analyze_replication(replication)
+
+
+def test_replication_reference_validation_requires_matching_new_five_seed128fits(replication):
+    json_edit(replication["old_runs"][-1]/"summary.json",lambda s:s.update(initialization_sha256="f"*64))
+    with pytest.raises(ValueError,match="paired seed digest"):
+        analyze_replication(replication)
+
+
+@pytest.mark.parametrize("change",[lambda p:p.update(seeds=list(REFERENCE_SEEDS)+list(NEW_SEEDS)),
+                                   lambda p:p.update(reference_seeds=list(REFERENCE_SEEDS)),
+                                   lambda p:p.update(historical_seed_scope="all_primary"),
+                                   lambda p:p.update(original_expansion_protocol_sha256="invalid")])
+def test_replication_protocol_cannot_pool_old_seeds_or_relax_primary_scope(replication,change):
+    json_edit(replication["protocol"],change)
+    with pytest.raises(ValueError):
+        analyze_replication(replication)
+
+
+def test_secondary_requires_all_four_explicit_artifacts(replication):
+    with pytest.raises(ValueError,match="all four artifacts"):
+        analyze_replication(replication,secondary_run_dirs=replication["original"]["runs"])
+
+
+def test_secondary_original_protocol_bytes_pinned_before_new_training(replication):
+    json_edit(replication["original"]["protocol"],lambda p:p.update(extra="changed"))
+    with pytest.raises(ValueError,match="Original expansion protocol bytes"):
+        analyze_replication(replication,secondary=True)
+
+
+def test_secondary_original_fits_are_fully_validated_before_combining(replication):
+    json_edit(replication["original"]["runs"][-1]/"summary.json",lambda s:s["timing"].update(updates=49))
+    with pytest.raises(ValueError,match="optimizer-update"):
+        analyze_replication(replication,secondary=True)
+
+
+def test_five_and_eight_seed_public_reports_exclude_case_paths_and_private_fields(replication,tmp_path):
+    report = analyze_replication(replication,secondary=True)
+    text = json.dumps(report,allow_nan=False)
+    for private in ("private_train","private_tune","private_extra",str(tmp_path),"private_local_filename"):
+        assert private not in text
+
+
+def test_new_five_baseline_artifact_bytes_are_bound_and_validated(replication):
+    directories = replication["baseline_dirs"]
+    report = analyze_replication(replication,baseline_dir=directories["new256"],reference_baseline_dir=directories["reference128"])
+    assert report["alignment_checks"]["locked_baseline_artifact_bytes_verified"] is True
+    assert report["baselines"]["new256"]["n_training_cases"] == 4
+
+
+@pytest.mark.parametrize("artifact",["baselines_summary.json","baseline_case_predictions.csv"])
+def test_changed_baseline_artifact_bytes_cannot_replace_locked_fits(replication,artifact):
+    directory = replication["baseline_dirs"]["new256"]
+    path = directory/artifact
+    path.write_bytes(path.read_bytes()+b"\n")
+    with pytest.raises(ValueError,match="baseline artifact bytes"):
+        analyze_replication(replication,baseline_dir=directory)

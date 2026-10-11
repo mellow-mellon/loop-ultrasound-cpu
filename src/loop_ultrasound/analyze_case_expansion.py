@@ -1,7 +1,7 @@
 """Nested training-Case expansion at a fixed optimizer-update budget.
 
 Compare separately fitted terminal-depth endpoints at 256 and 128 training
-Cases. All paired uncertainty intervals condition on the three fitted seeds
+Cases. All paired uncertainty intervals condition on the locked fitted seeds
 and the previously observed development cohort. No scaling gate is applied.
 """
 from __future__ import annotations
@@ -20,26 +20,45 @@ from .analyze_depth_supervision import (DEPTHS, FINAL_SELECTION, FIXED_CONFIG, S
                                        _trace, regime_name)
 from .analyze_expanded import AGGREGATE_METRICS, BASELINES, _baseline_data, _fingerprint
 from .analyze_seed_replication import (_cohort_check, _effect, _high_confidence_errors,
-                                      _load_runs, _nll_per_case, _stats, _transitions)
+                                      _load_runs, _nll_per_case, _replication_protocol, _stats, _transitions)
 from .metrics import classification_metrics
 
 
 SEEDS = (17,29,43)
+NEW_SEEDS = (53,71,89,107,131)
 NEW_EPOCHS = 25
 
 
 def _protocol(path, training_cases, reference_cases, development_cases):
     protocol = _json(path,"A readable locked Case-expansion protocol is required.")
-    if (protocol.get("status")!="fixed_before_case_expansion_training"
-            or protocol.get("phase")!="exploratory_nested_training_case_expansion_on_observed_tune"
+    expected_modes = {
+        "fixed_before_case_expansion_training": (SEEDS,"exploratory_nested_training_case_expansion_on_observed_tune"),
+        "fixed_before_case_expansion_seed_replication_training":
+            (NEW_SEEDS,"exploratory_nested_case_expansion_training_randomness_replication_on_observed_tune")}
+    mode = expected_modes.get(protocol.get("status"))
+    if (mode is None or protocol.get("phase")!=mode[1]
             or protocol.get("clinical_validation") is not False or protocol.get("device")!="cpu"
             or protocol.get("patient_mapping")!="unverified_Case_grouped_only"
             or protocol.get("model_selection")!=FINAL_SELECTION
             or protocol.get("warm_starts") is not False or protocol.get("calibration_and_test_predictions") is not False):
         raise ValueError("Protocol must lock a fresh CPU, observed-tune, fixed-final Case expansion.")
-    if (protocol.get("seeds")!=list(SEEDS) or protocol.get("arms")!=["SJ"]
+    seeds = mode[0]
+    if (protocol.get("seeds")!=list(seeds) or protocol.get("arms")!=["SJ"]
             or protocol.get("depths")!=list(DEPTHS) or protocol.get("supervisions")!=["terminal"]):
-        raise ValueError("Protocol must lock all three paired seeds and terminal-only depths 2/4.")
+        raise ValueError("Protocol must lock the expected paired primary seeds and terminal-only depths 2/4.")
+    if seeds==NEW_SEEDS:
+        if protocol.get("reference_seeds")!=list(seeds) or protocol.get("historical_seed_scope")!="original_three_secondary_only":
+            raise ValueError("Replication must pair the five new seeds and reserve the original three for secondary reporting.")
+        protocol["original_expansion_protocol_sha256"] = _hash(protocol.get("original_expansion_protocol_sha256"),"original expansion protocol digest")
+        bindings = protocol.get("baseline_artifact_bindings")
+        if not isinstance(bindings,dict) or set(bindings)!={"new256","reference128"}:
+            raise ValueError("Replication must lock both size-specific baseline artifact bindings.")
+        for size in ("new256","reference128"):
+            item = bindings[size]
+            if not isinstance(item,dict) or set(item)!={"summary_sha256","predictions_sha256"}:
+                raise ValueError("Baseline bindings must lock summary and local prediction digests.")
+            for key in item:
+                item[key] = _hash(item[key],"locked baseline artifact digest")
     config = {**FIXED_CONFIG,"epochs":NEW_EPOCHS}
     for key,expected in config.items():
         if key!="arm" and (protocol.get(key)!=expected or type(protocol.get(key)) is not type(expected)):
@@ -57,9 +76,9 @@ def _protocol(path, training_cases, reference_cases, development_cases):
     for key in SOURCE_KEYS+("reference_protocol_sha256","launcher_source_sha256"):
         protocol[key] = _hash(protocol.get(key),f"protocol {key}")
     init = protocol.get("initialization_sha256_by_seed")
-    if not isinstance(init,dict) or set(init)!={str(seed) for seed in SEEDS}:
+    if not isinstance(init,dict) or set(init)!={str(seed) for seed in seeds}:
         raise ValueError("Protocol must lock paired initial parameter digests at each seed.")
-    protocol["initialization_sha256_by_seed"] = {str(seed):_hash(init[str(seed)],"initialization digest") for seed in SEEDS}
+    protocol["initialization_sha256_by_seed"] = {str(seed):_hash(init[str(seed)],"initialization digest") for seed in seeds}
     for split,count in (("train",training_cases),("reference_train",reference_cases),("tune",development_cases)):
         item = protocol.get(split)
         if not isinstance(item,dict) or _integer(item.get("cases"),"protocol Case count",2)!=count:
@@ -84,7 +103,7 @@ def _new_summary(directory,protocol):
         if config.get(key)!=expected or type(config.get(key)) is not type(expected):
             raise ValueError("New fit config differs from the locked 25-epoch training configuration.")
     seed,depth = _integer(config.get("seed"),"training seed"),_integer(config.get("steps"),"depth",1)
-    if seed not in SEEDS or depth not in DEPTHS or config.get("supervision")!="terminal":
+    if seed not in protocol["seeds"] or depth not in DEPTHS or config.get("supervision")!="terminal":
         raise ValueError("New fits must match each expected paired seed and terminal depth.")
     for key in SOURCE_KEYS:
         if _hash(summary.get(key),key)!=protocol[key]:
@@ -107,8 +126,10 @@ def _new_summary(directory,protocol):
 
 def _new_runs(directories,protocol):
     directories = [Path(path) for path in directories]
-    if len(directories)!=6 or len({path.resolve() for path in directories})!=6:
-        raise ValueError("Supply six distinct completed new terminal-depth/seed fits.")
+    seeds = tuple(protocol["seeds"])
+    expected = len(seeds)*2
+    if len(directories)!=expected or len({path.resolve() for path in directories})!=expected:
+        raise ValueError("Supply exactly two distinct completed new terminal-depth fits per locked primary seed.")
     runs,training,development,metrics = {},{},{},{}
     common_config = None
     for directory in directories:
@@ -135,9 +156,9 @@ def _new_runs(directories,protocol):
                      "train_fingerprint":protocol["train"]["fingerprint"],"tune_fingerprint":protocol["tune"]["fingerprint"]}
         if summary.get("cohort_selection")!=selection:
             raise ValueError("Declared new cohort selection differs from the locked protocol.")
-    if set(runs)!={(seed,depth) for seed in SEEDS for depth in DEPTHS}:
-        raise ValueError("All six expected new paired seed/depth fits are required.")
-    train_reference,tune_reference = training[(17,2)][1],development[(17,2)][1]
+    if set(runs)!={(seed,depth) for seed in seeds for depth in DEPTHS}:
+        raise ValueError("All expected new paired seed/depth fits are required.")
+    train_reference,tune_reference = training[(seeds[0],2)][1],development[(seeds[0],2)][1]
     train_images = _cohort_check(train_reference,protocol["train"])
     tune_images = _cohort_check(tune_reference,protocol["tune"])
     if set(train_reference)&set(tune_reference) or train_images&tune_images:
@@ -155,39 +176,45 @@ def _train_classification(index):
     return classification_metrics([index[case]["label"] for case in cases],[index[case]["probability"] for case in cases])
 
 
-def _block(loaded,*,draws,bootstrap_seed):
+def _block(loaded,*,draws,bootstrap_seed,seeds=SEEDS):
     cases = sorted(loaded["tune_reference"])
     labels = np.array([loaded["tune_reference"][case]["label"] for case in cases])
     probabilities = {depth:np.array([[loaded["development"][(seed,depth)][depth][case]["probability"] for case in cases]
-                                     for seed in SEEDS]) for depth in DEPTHS}
+                                     for seed in seeds]) for depth in DEPTHS}
     dices = {depth:np.array([[loaded["development"][(seed,depth)][depth][case]["dice"] for case in cases]
-                            for seed in SEEDS]) for depth in DEPTHS}
+                            for seed in seeds]) for depth in DEPTHS}
     gains = (probabilities[2]-labels)**2-(probabilities[4]-labels)**2
     nll = _nll_per_case(labels,probabilities[4])-_nll_per_case(labels,probabilities[2])
     regimes,seed_results = {},[]
     train_metrics = {(seed,depth):_train_classification(loaded["training"][(seed,depth)][depth])
-                     for seed in SEEDS for depth in DEPTHS}
+                     for seed in seeds for depth in DEPTHS}
     for depth in DEPTHS:
-        by_step = {str(step):{metric:_stats([loaded["metrics"][(seed,depth)][str(step)][metric] for seed in SEEDS])
+        by_step = {str(step):{metric:_stats([loaded["metrics"][(seed,depth)][str(step)][metric] for seed in seeds])
                               for metric in AGGREGATE_METRICS} for step in range(1,depth+1)}
-        gap = [loaded["metrics"][(seed,depth)][str(depth)]["brier"]-train_metrics[(seed,depth)]["brier"] for seed in SEEDS]
+        gap = [loaded["metrics"][(seed,depth)][str(depth)]["brier"]-train_metrics[(seed,depth)]["brier"] for seed in seeds]
         regimes[regime_name(depth,"terminal")] = {"depth":depth,"supervision":"terminal","by_step":by_step,
                                                   "endpoint":by_step[str(depth)],"development_minus_training_brier":_stats(gap),
-                                                  "training_endpoint":{metric:_stats([train_metrics[(seed,depth)][metric] for seed in SEEDS])
+                                                  "training_endpoint":{metric:_stats([train_metrics[(seed,depth)][metric] for seed in seeds])
                                                                        for metric in AGGREGATE_METRICS if metric!="mean_case_dice"}}
-    for i,seed in enumerate(SEEDS):
+    for i,seed in enumerate(seeds):
+        auroc2,auroc4 = loaded["metrics"][(seed,2)]["2"]["auroc"],loaded["metrics"][(seed,4)]["4"]["auroc"]
         seed_results.append({"seed":seed,"depth_benefit_Brier":float(gains[i].mean()),"NLL_worsening":float(nll[i].mean()),
+                             "AUROC_change":auroc4-auroc2 if auroc2 is not None and auroc4 is not None else None,
                              "regimes":{regime_name(depth,"terminal"):{"depth":depth,"supervision":"terminal",
                                            "endpoint":loaded["metrics"][(seed,depth)][str(depth)],
                                            "training_endpoint":train_metrics[(seed,depth)],
                                            "development_minus_training_brier":loaded["metrics"][(seed,depth)][str(depth)]["brier"]-train_metrics[(seed,depth)]["brier"],
                                            "endpoint_diagnostics":_high_confidence_errors(labels,probabilities[depth][i])} for depth in DEPTHS},
                              "classification_transitions":_transitions(labels,probabilities[2][i],probabilities[4][i])})
-    return {"training_seeds":list(SEEDS),"n_seeds":3,"n_training_cases":len(loaded["train_reference"]),
+    seed_gains = gains.mean(axis=1)
+    return {"training_seeds":list(seeds),"n_seeds":len(seeds),"n_training_cases":len(loaded["train_reference"]),
             "regimes":regimes,"seed_results":seed_results,
-            "depth_benefit_Brier":_effect(gains,SEEDS,draws=draws,bootstrap_seed=bootstrap_seed),
-            "NLL_worsening":_effect(nll,SEEDS,draws=draws,bootstrap_seed=bootstrap_seed),
-            "Dice_change":_effect(dices[4]-dices[2],SEEDS,draws=draws,bootstrap_seed=bootstrap_seed)},gains
+            "depth_benefit_Brier":_effect(gains,seeds,draws=draws,bootstrap_seed=bootstrap_seed),
+            "NLL_worsening":_effect(nll,seeds,draws=draws,bootstrap_seed=bootstrap_seed),
+            "AUROC_change":_stats([row["AUROC_change"] for row in seed_results]),
+            "Dice_change":_effect(dices[4]-dices[2],seeds,draws=draws,bootstrap_seed=bootstrap_seed),
+            "leave_one_seed_out":[{"omitted_seed":seed,"mean_gain":float(np.delete(seed_gains,i).mean())}
+                                  for i,seed in enumerate(seeds)]},gains
 
 
 def _history_endpoint(summary,epoch,depth,n_cases):
@@ -261,26 +288,18 @@ def _classification_baselines(directory,loaded,protocol):
             "baselines":metrics}
 
 
-def analyze_case_expansion(run_dirs,*,protocol_path,reference_run_dirs,reference_protocol_path,
-                          draws=2000,bootstrap_seed=17,expected_training_cases=256,
-                          expected_reference_training_cases=128,expected_development_cases=159,
-                          baseline_dir=None,reference_baseline_dir=None):
-    draws = _integer(draws,"bootstrap draws",2)
-    bootstrap_seed = _integer(bootstrap_seed,"bootstrap seed")
-    training_cases = _integer(expected_training_cases,"new training Cases",2)
-    reference_cases = _integer(expected_reference_training_cases,"reference training Cases",2)
-    development_cases = _integer(expected_development_cases,"development Cases",2)
-    protocol = _protocol(protocol_path,training_cases,reference_cases,development_cases)
-    run_dirs,reference_run_dirs = list(run_dirs),list(reference_run_dirs)
+def _paired_runs(run_dirs,protocol,reference_run_dirs,reference_protocol_path,reference_cases,development_cases):
+    seeds = tuple(protocol["seeds"])
     reference_digest = hashlib.sha256(Path(reference_protocol_path).read_bytes()).hexdigest()
     if reference_digest!=protocol["reference_protocol_sha256"]:
         raise ValueError("Reference protocol bytes differ from the digest locked before expansion.")
-    reference_protocol = _reference_protocol(reference_protocol_path,reference_cases,development_cases)
+    reference_protocol = (_reference_protocol(reference_protocol_path,reference_cases,development_cases)
+                          if seeds==SEEDS else _replication_protocol(reference_protocol_path,reference_cases,development_cases))
     if (any(reference_protocol[key]!=protocol[key] for key in SOURCE_KEYS)
             or reference_protocol["train"]!=protocol["reference_train"] or reference_protocol["tune"]!=protocol["tune"]
             or reference_protocol["initialization_sha256_by_seed"]!=protocol["initialization_sha256_by_seed"]):
         raise ValueError("Reference source/cohort and paired initialization must match the expansion protocol.")
-    new,old = _new_runs(run_dirs,protocol),_load_runs(reference_run_dirs,reference_protocol,SEEDS)
+    new,old = _new_runs(run_dirs,protocol),_load_runs(reference_run_dirs,reference_protocol,seeds)
     old_common = {k:v for k,v in old["common_config"].items() if k!="epochs"}
     if new["common_config"]!=old_common:
         raise ValueError("New/reference fitting configs must match apart from epochs, paired seed and depth.")
@@ -293,8 +312,10 @@ def analyze_case_expansion(run_dirs,*,protocol_path,reference_run_dirs,reference
         candidate = new["train_reference"][case]
         if row["label"]!=candidate["label"] or row["image_ids"]!=candidate["image_ids"]:
             raise ValueError("Every nested reference Case must retain its pathology label and all shared views.")
-    primary,new_gains = _block(new,draws=draws,bootstrap_seed=bootstrap_seed)
-    reference,old_gains = _block(old,draws=draws,bootstrap_seed=bootstrap_seed)
+    return new,old,reference_protocol,reference_digest
+
+
+def _data_size_effects(new,old,seeds,*,draws,bootstrap_seed):
     # A depth interaction can change because either fitted endpoint improves.
     # Report each depth's direct data-size contrast as a secondary diagnostic.
     cases = sorted(new["tune_reference"])
@@ -302,16 +323,79 @@ def analyze_case_expansion(run_dirs,*,protocol_path,reference_run_dirs,reference
     data_size_benefit = {}
     for depth in DEPTHS:
         probabilities = {size:np.array([[loaded["development"][(seed,depth)][depth][case]["probability"]
-                                        for case in cases] for seed in SEEDS])
+                                        for case in cases] for seed in seeds])
                          for size,loaded in (("new",new),("old",old))}
         dice_change = np.array([[new["development"][(seed,depth)][depth][case]["dice"]
-                                -old["development"][(seed,depth)][depth][case]["dice"] for case in cases] for seed in SEEDS])
+                                -old["development"][(seed,depth)][depth][case]["dice"] for case in cases] for seed in seeds])
         data_size_benefit[regime_name(depth,"terminal")] = {
             "Brier_benefit":_effect((probabilities["old"]-labels)**2-(probabilities["new"]-labels)**2,
-                                    SEEDS,draws=draws,bootstrap_seed=bootstrap_seed),
+                                    seeds,draws=draws,bootstrap_seed=bootstrap_seed),
             "NLL_benefit":_effect(_nll_per_case(labels,probabilities["old"])-_nll_per_case(labels,probabilities["new"]),
-                                  SEEDS,draws=draws,bootstrap_seed=bootstrap_seed),
-            "Dice_change":_effect(dice_change,SEEDS,draws=draws,bootstrap_seed=bootstrap_seed)}
+                                  seeds,draws=draws,bootstrap_seed=bootstrap_seed),
+            "Dice_change":_effect(dice_change,seeds,draws=draws,bootstrap_seed=bootstrap_seed)}
+    return data_size_benefit
+
+
+def _merge_loaded(primary,secondary):
+    _match_cases(primary["train_reference"],secondary["train_reference"])
+    _match_cases(primary["tune_reference"],secondary["tune_reference"])
+    if primary["common_config"]!=secondary["common_config"]:
+        raise ValueError("Primary/secondary fitting configs must match within each data size.")
+    if set(primary["runs"])&set(secondary["runs"]):
+        raise ValueError("Primary and secondary seed/depth fits must be disjoint.")
+    return {**primary,**{key:{**secondary[key],**primary[key]} for key in ("runs","training","development","metrics")}}
+
+
+def _secondary_report(new,old,seeds,*,draws,bootstrap_seed,role):
+    at256,g256 = _block(new,draws=draws,bootstrap_seed=bootstrap_seed,seeds=seeds)
+    at128,g128 = _block(old,draws=draws,bootstrap_seed=bootstrap_seed,seeds=seeds)
+    return {"role":role,"training_seeds":list(seeds),"can_override_primary":False,
+            "primary_256":at256,"reference_128":at128,
+            "interaction_data_size_depth":_effect(g256-g128,seeds,draws=draws,bootstrap_seed=bootstrap_seed),
+            "data_size_benefit_by_depth":_data_size_effects(new,old,seeds,draws=draws,bootstrap_seed=bootstrap_seed)}
+
+
+def analyze_case_expansion(run_dirs,*,protocol_path,reference_run_dirs,reference_protocol_path,
+                          draws=2000,bootstrap_seed=17,expected_training_cases=256,
+                          expected_reference_training_cases=128,expected_development_cases=159,
+                          baseline_dir=None,reference_baseline_dir=None,
+                          secondary_run_dirs=None,secondary_protocol_path=None,
+                          secondary_reference_run_dirs=None,secondary_reference_protocol_path=None):
+    draws = _integer(draws,"bootstrap draws",2)
+    bootstrap_seed = _integer(bootstrap_seed,"bootstrap seed")
+    training_cases = _integer(expected_training_cases,"new training Cases",2)
+    reference_cases = _integer(expected_reference_training_cases,"reference training Cases",2)
+    development_cases = _integer(expected_development_cases,"development Cases",2)
+    protocol = _protocol(protocol_path,training_cases,reference_cases,development_cases)
+    seeds = tuple(protocol["seeds"])
+    run_dirs,reference_run_dirs = list(run_dirs),list(reference_run_dirs)
+    new,old,reference_protocol,reference_digest = _paired_runs(run_dirs,protocol,reference_run_dirs,reference_protocol_path,
+                                                             reference_cases,development_cases)
+    primary,new_gains = _block(new,draws=draws,bootstrap_seed=bootstrap_seed,seeds=seeds)
+    reference,old_gains = _block(old,draws=draws,bootstrap_seed=bootstrap_seed,seeds=seeds)
+    data_size_benefit = _data_size_effects(new,old,seeds,draws=draws,bootstrap_seed=bootstrap_seed)
+    secondary_original,secondary_combined = None,None
+    secondary_args = (secondary_run_dirs,secondary_protocol_path,secondary_reference_run_dirs,secondary_reference_protocol_path)
+    if any(value is not None for value in secondary_args):
+        if not all(value is not None for value in secondary_args) or seeds!=NEW_SEEDS:
+            raise ValueError("Original-three secondary fits require all four artifacts and a five-new-seed primary replication.")
+        digest = hashlib.sha256(Path(secondary_protocol_path).read_bytes()).hexdigest()
+        if digest!=protocol["original_expansion_protocol_sha256"]:
+            raise ValueError("Original expansion protocol bytes differ from the digest locked before replication.")
+        secondary_run_dirs,secondary_reference_run_dirs = list(secondary_run_dirs),list(secondary_reference_run_dirs)
+        original_protocol = _protocol(secondary_protocol_path,training_cases,reference_cases,development_cases)
+        if tuple(original_protocol["seeds"])!=SEEDS or any(original_protocol[key]!=protocol[key] for key in SOURCE_KEYS):
+            raise ValueError("Original-three secondary fits must use the same source digests as the new primary replication.")
+        original_new,original_old,_,_ = _paired_runs(secondary_run_dirs,original_protocol,secondary_reference_run_dirs,
+                                                    secondary_reference_protocol_path,reference_cases,development_cases)
+        all_primary_paths = {Path(path).resolve() for path in run_dirs+reference_run_dirs}
+        if all_primary_paths&{Path(path).resolve() for path in secondary_run_dirs+secondary_reference_run_dirs}:
+            raise ValueError("Primary and secondary model fit directories must be distinct.")
+        combined_new,combined_old = _merge_loaded(new,original_new),_merge_loaded(old,original_old)
+        secondary_original = _secondary_report(original_new,original_old,SEEDS,draws=draws,bootstrap_seed=bootstrap_seed,
+                                                role="original_three_seed_results_secondary_only")
+        secondary_combined = _secondary_report(combined_new,combined_old,SEEDS+NEW_SEEDS,draws=draws,bootstrap_seed=bootstrap_seed,
+                                                role="combined_eight_fitted_seed_results_descriptive_secondary_only")
     learning = []
     for epoch in range(5,26,5):
         entry = {"updates":epoch*math.ceil(training_cases/2),"new_epoch":epoch,"reference_epoch":epoch*2,
@@ -319,32 +403,44 @@ def analyze_case_expansion(run_dirs,*,protocol_path,reference_run_dirs,reference
         for depth in DEPTHS:
             name = regime_name(depth,"terminal")
             for label,loaded,matched_epoch in (("new256",new,epoch),("reference128",old,epoch*2)):
-                history = [_history_endpoint(loaded["runs"][(seed,depth)],matched_epoch,depth,development_cases) for seed in SEEDS]
+                history = [_history_endpoint(loaded["runs"][(seed,depth)],matched_epoch,depth,development_cases) for seed in seeds]
                 entry[label][name] = {metric:_stats([value[metric] for value in history]) for metric in AGGREGATE_METRICS}
         learning.append(entry)
     baseline_reports = None
     if baseline_dir is not None or reference_baseline_dir is not None:
+        if seeds==NEW_SEEDS:
+            for size,directory in (("new256",baseline_dir),("reference128",reference_baseline_dir)):
+                if directory is None:
+                    continue
+                for filename,key in (("baselines_summary.json","summary_sha256"),
+                                      ("baseline_case_predictions.csv","predictions_sha256")):
+                    if hashlib.sha256((Path(directory)/filename).read_bytes()).hexdigest()!=protocol["baseline_artifact_bindings"][size][key]:
+                        raise ValueError("Supplied baseline artifact bytes differ from the digests locked before replication.")
         baseline_reports = {
             "new256":_classification_baselines(baseline_dir,new,protocol) if baseline_dir is not None else None,
             "reference128":_classification_baselines(reference_baseline_dir,old,reference_protocol)
                            if reference_baseline_dir is not None else None}
     return {"status":"executed_cpu_case_expansion_analysis","clinical_validation":False,"mechanism_identified":False,
             "patient_mapping":"unverified_Case_grouped_only","evaluation_split":"tune_development","model_selection":FINAL_SELECTION,
-            "phase":protocol["phase"],"training_seeds":list(SEEDS),"config":{**FIXED_CONFIG,"epochs":25,"reference_epochs":50,"supervision":"terminal"},
+            "phase":protocol["phase"],"training_seeds":list(seeds),
+            "primary_seed_role":"five_new_seed_replication" if seeds==NEW_SEEDS else "original_three_seed_screen",
+            "config":{**FIXED_CONFIG,"epochs":25,"reference_epochs":50,"supervision":"terminal"},
             "training_updates_per_run":protocol["training_updates_per_run"],
             "n_training_cases":training_cases,"n_reference_training_cases":reference_cases,"n_development_cases":development_cases,
             "n_training_images":protocol["train"]["images"],"n_reference_training_images":protocol["reference_train"]["images"],
             "n_development_images":protocol["tune"]["images"],"n_development_positive":protocol["tune"]["malignant"],
             "n_development_negative":protocol["tune"]["benign"],
             "sources":{**{key:protocol[key] for key in SOURCE_KEYS},"launcher_source_sha256":protocol["launcher_source_sha256"],
-                       "protocol_sha256":hashlib.sha256(Path(protocol_path).read_bytes()).hexdigest(),"reference_protocol_sha256":reference_digest},
+                       "protocol_sha256":hashlib.sha256(Path(protocol_path).read_bytes()).hexdigest(),"reference_protocol_sha256":reference_digest,
+                       "original_expansion_protocol_sha256":protocol.get("original_expansion_protocol_sha256")},
             "cohort_fingerprints":{"train":protocol["train"]["fingerprint"],"reference_train":protocol["reference_train"]["fingerprint"],"tune":protocol["tune"]["fingerprint"]},
             "paired_initialization":{"same_across_data_sizes_and_depths_within_seed":True,
-                                     "by_seed":[{"seed":seed,"initialization_sha256":protocol["initialization_sha256_by_seed"][str(seed)]} for seed in SEEDS]},
-            "alignment_checks":{"exactly_six_new_and_six_reference_terminal_fits":True,"strictly_nested_training_cases":True,
+                                     "by_seed":[{"seed":seed,"initialization_sha256":protocol["initialization_sha256_by_seed"][str(seed)]} for seed in seeds]},
+            "alignment_checks":{"expected_fit_count_each_data_size":2*len(seeds),"all_primary_terminal_fits_present":True,"strictly_nested_training_cases":True,
                                 "all_shared_training_views_and_labels_preserved":True,"same_development_case_view_label_sets":True,
                                 "train_tune_only_records":True,"no_cross_split_case_or_image_overlap":True,
                                 "matching_locked_source_and_init_digests":True,"equal_completed_optimizer_updates":True,
+                                "locked_baseline_artifact_bytes_verified":seeds==NEW_SEEDS and baseline_dir is not None and reference_baseline_dir is not None,
                                 "new_25_reference_50_fixed_epoch_histories":True,"endpoint_metrics_recomputed_from_case_traces":True},
             "definitions":{"G":"Brier_separately_trained_terminal2_endpoint - Brier_separately_trained_terminal4_endpoint; positive favors trained4",
                            "interaction_data_size_depth":"G256 - G128 paired within identical development Cases and fitted seeds",
@@ -353,16 +449,18 @@ def analyze_case_expansion(run_dirs,*,protocol_path,reference_run_dirs,reference
                            "training_gap":"development endpoint Brier minus training endpoint Brier, computed separately per fitted seed",
                            "matched_update_learning":"new epoch5/10/15/20/25 vs reference epoch10/20/30/40/50; equal completed optimizer updates",
                            "bootstrap":"average seed-specific paired effects within each aligned Case before resampling Cases; conditional on fitted models",
-                           "seed_std":"sample SD ddof=1 over three fitted seeds; not a seed-population confidence interval"},
+                           "seed_std":"sample SD ddof=1 over locked fitted seeds; not a seed-population confidence interval"},
             "primary_256":primary,"reference_128":reference,
             "data_size_benefit_by_depth":data_size_benefit,
             "baselines":baseline_reports,
-            "interaction_data_size_depth":_effect(new_gains-old_gains,SEEDS,draws=draws,bootstrap_seed=bootstrap_seed),
+            "interaction_data_size_depth":_effect(new_gains-old_gains,seeds,draws=draws,bootstrap_seed=bootstrap_seed),
+            "secondary_original_three_seeds":secondary_original,"secondary_combined_eight_seeds":secondary_combined,
             "matched_update_learning":learning,"decision_rule_automatically_applied":False,
             "limitations":["This nested training expansion reuses the already observed development cohort; it is exploratory and adds no new validation patients.",
                            "Matched optimizer updates do not equalize all computation or stochastic training paths; trained4 requires more recurrent applications than trained2.",
                            "The 256-Case models see more distinct Cases for fewer epochs; the contrast studies this fixed-update tradeoff rather than an isolated data-size effect under equal epochs.",
-                           "The Case bootstrap conditions on these three fitted seeds and excludes population uncertainty over training randomness.",
+                           "The Case bootstrap conditions on the locked fitted seeds and excludes population uncertainty over training randomness.",
+                           "Original-three and combined-eight results, when supplied, are secondary and cannot substitute for the five-new-seed primary results.",
                            "Case-to-patient mapping remains unverified; clinical utility and patient independence are not established.",
                            "Primary comparison uses separately trained endpoints; terminal-only intermediate readouts are not directly supervised.",
                            "No success gate or automatic expansion/GPU action is applied; calibration/test predictions are absent.",
@@ -377,6 +475,10 @@ def parser():
     p.add_argument("--reference-protocol",required=True)
     p.add_argument("--baseline-dir")
     p.add_argument("--reference-baseline-dir")
+    p.add_argument("--secondary-run-dirs",nargs="+")
+    p.add_argument("--secondary-protocol")
+    p.add_argument("--secondary-reference-run-dirs",nargs="+")
+    p.add_argument("--secondary-reference-protocol")
     p.add_argument("--output",default="outputs/cpu-case-expansion256/case_expansion_analysis.json")
     p.add_argument("--draws",type=int,default=2000)
     p.add_argument("--bootstrap-seed",type=int,default=17)
@@ -398,7 +500,10 @@ def main(argv=None):
                                        expected_training_cases=args.expected_training_cases,
                                        expected_reference_training_cases=args.expected_reference_training_cases,
                                        expected_development_cases=args.expected_development_cases,
-                                       baseline_dir=args.baseline_dir,reference_baseline_dir=args.reference_baseline_dir)
+                                       baseline_dir=args.baseline_dir,reference_baseline_dir=args.reference_baseline_dir,
+                                       secondary_run_dirs=args.secondary_run_dirs,secondary_protocol_path=args.secondary_protocol,
+                                       secondary_reference_run_dirs=args.secondary_reference_run_dirs,
+                                       secondary_reference_protocol_path=args.secondary_reference_protocol)
     except (ValueError,OSError) as error:
         p.error(str(error) if isinstance(error,ValueError) else "A required local reference artifact is unreadable.")
     payload = json.dumps(report,indent=2,allow_nan=False)+"\n"

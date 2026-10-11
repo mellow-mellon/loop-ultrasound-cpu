@@ -1,8 +1,9 @@
 """Aggregate-only figures comparing matched-update 128/256-Case CPU fits.
 
-Reads a locked expansion protocol, six new 256-Case summaries, and six
-explicitly named 128-Case reference summaries. Learning curves align optimizer
-updates, not epochs. Endpoints belong to separately fitted two/four-step models.
+Reads a locked expansion protocol and explicitly named 256/128-Case summary
+pairs for either the original three seeds or the five additional seeds.
+Learning curves align optimizer updates, not epochs. Endpoints belong to
+separately fitted two/four-step models; the two seed groups are never pooled.
 Matplotlib is optional and imported only after all inputs are validated.
 """
 from __future__ import annotations
@@ -22,6 +23,9 @@ from .plot_seed_replication import _read_json, _digest, _metric, _mean_sd
 
 DEPTHS = (2, 4)
 SEEDS = (17, 29, 43)
+REPLICATION_SEEDS = (53, 71, 89, 107, 131)
+PROTOCOL_SEEDS = {"fixed_before_case_expansion_training": SEEDS,
+                  "fixed_before_case_expansion_seed_replication_training": REPLICATION_SEEDS}
 SIZES = (128, 256)
 UPDATE_POINTS = (640, 1280, 1920, 2560, 3200)
 SOURCE_KEYS = ("encoder_sha256", "manifest_sha256", "training_source_sha256")
@@ -48,8 +52,9 @@ DISCLAIMER = (
 def load_reports(report_dir, reference_report_dir, *, protocol_path=DEFAULT_PROTOCOL):
     """Validate both cohorts, paired fits, and the matched-update curve grid."""
     protocol = _read_json(Path(protocol_path))
-    if (protocol.get("status") != "fixed_before_case_expansion_training"
-            or protocol.get("seeds") != list(SEEDS) or protocol.get("depths") != list(DEPTHS)
+    status = protocol.get("status")
+    seeds = PROTOCOL_SEEDS.get(status) if isinstance(status, str) else None
+    if (seeds is None or protocol.get("seeds") != list(seeds) or protocol.get("depths") != list(DEPTHS)
             or protocol.get("supervisions") != ["terminal"] or protocol.get("arms") != ["SJ"]
             or protocol.get("device") != "cpu" or protocol.get("clinical_validation") is not False
             or protocol.get("calibration_and_test_predictions") is not False
@@ -66,13 +71,15 @@ def load_reports(report_dir, reference_report_dir, *, protocol_path=DEFAULT_PROT
             or any(protocol.get(key) != value for key, value in FIXED_CONFIG.items()
                    if key not in {"arm", "supervision"})):
         raise ValueError("Protocol is not the fixed matched-update 256-Case CPU expansion.")
+    if seeds == REPLICATION_SEEDS and not _digest(protocol.get("original_expansion_protocol_sha256")):
+        raise ValueError("Replication protocol is missing the original expansion provenance digest.")
     nested = protocol.get("nested_cohort_check", {})
     if (not isinstance(nested, dict)
             or any(nested.get(key) is not True for key in ("reference_cases_subset", "reference_images_subset",
                                                           "shared_view_labels_match"))):
         raise ValueError("Protocol does not declare a verified nested training cohort.")
     initialization = protocol.get("initialization_sha256_by_seed", {})
-    if (not isinstance(initialization, dict) or set(initialization) != {str(seed) for seed in SEEDS}
+    if (not isinstance(initialization, dict) or set(initialization) != {str(seed) for seed in seeds}
             or not all(_digest(value) for value in initialization.values())
             or not all(_digest(protocol.get(key)) for key in SOURCE_KEYS)):
         raise ValueError("Protocol is missing source or paired-initialization digests.")
@@ -85,7 +92,7 @@ def load_reports(report_dir, reference_report_dir, *, protocol_path=DEFAULT_PROT
     directories = {128: Path(reference_report_dir), 256: Path(report_dir)}
     runs = {(size, depth, seed): _read_json(
         directory / f"SJ-depth{depth}-terminal-seed{seed}.json")
-        for size, directory in directories.items() for depth in DEPTHS for seed in SEEDS}
+        for size, directory in directories.items() for depth in DEPTHS for seed in seeds}
     common_config, fingerprints = None, {}
     for (size, depth, seed), run in runs.items():
         name = f"{size}-Case SJ-depth{depth}-terminal-seed{seed}.json"
@@ -161,16 +168,34 @@ def _matched_history(run, size, depth, metric):
     return [by_update[update] for update in UPDATE_POINTS]
 
 
-def _decorate(figure, axes, title, subtitle):
+def _seed_effects(runs, seeds):
+    """Endpoint differences, paired by seed and with explicit effect signs."""
+    brier = {size: np.asarray([[runs[size, depth, seed]["development_subset"][str(depth)]["brier"]
+                               for depth in DEPTHS] for seed in seeds], dtype=np.float64)
+             for size in SIZES}
+    gains = {size: values[:, 0] - values[:, 1] for size, values in brier.items()}
+    data_benefits = {depth: brier[128][:, index] - brier[256][:, index]
+                     for index, depth in enumerate(DEPTHS)}
+    return gains, data_benefits
+
+
+def _decorate(figure, axes, title, subtitle, *, replication=False, legend_axes=None):
     figure.suptitle(title, fontsize=13, fontweight="bold", y=.975)
     figure.text(.5, .91, subtitle, ha="center", fontsize=9.5, color="#333333")
     for axis in axes:
         axis.grid(alpha=.20, linewidth=.6)
         axis.spines[["top", "right"]].set_visible(False)
-    handles, labels = axes[0].get_legend_handles_labels()
+    handles, labels = [], []
+    for axis in legend_axes or [axes[0]]:
+        current_handles, current_labels = axis.get_legend_handles_labels()
+        handles.extend(current_handles)
+        labels.extend(current_labels)
     figure.legend(handles, labels, loc="lower center", bbox_to_anchor=(.5, .20),
                   ncol=2, frameon=False, fontsize=8.5)
-    figure.text(.5, .025, DISCLAIMER, ha="center", va="bottom", fontsize=8,
+    disclaimer = DISCLAIMER
+    if replication:
+        disclaimer += "\nPrimary replication: only five additional seeds; original three are excluded from these figures."
+    figure.text(.5, .025, disclaimer, ha="center", va="bottom", fontsize=8,
                 color="#333333", linespacing=1.45)
     figure.subplots_adjust(left=.075, right=.97, top=.81, bottom=.40, wspace=.28)
 
@@ -182,22 +207,25 @@ def _render_figures(runs):
 
     plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10,
                          "svg.fonttype": "none", "savefig.facecolor": "white"})
+    seeds = tuple(sorted({key[2] for key in runs}))
+    replication = seeds == REPLICATION_SEEDS
     learning, axes = plt.subplots(1, 2, figsize=(12, 7))
     for axis, metric, ylabel in zip(axes, ("brier", "auroc"),
                                    ("Development Brier (lower is better)", "Development AUROC (higher is better)")):
         for depth in DEPTHS:
             for size in SIZES:
                 means, sd = _mean_sd([_matched_history(runs[size, depth, seed], size, depth, metric)
-                                     for seed in SEEDS])
+                                     for seed in seeds])
                 axis.plot(UPDATE_POINTS, means, color=COLORS[size, depth], linewidth=1.8,
                           marker="o" if depth == 2 else "s", markersize=4,
                           linestyle="-" if size == 128 else "--", label=f"{size} Cases: {depth}-step endpoint")
                 axis.fill_between(UPDATE_POINTS, means-sd, means+sd,
                                   color=COLORS[size, depth], alpha=.14, linewidth=0)
         axis.set(xlabel="Completed optimizer updates (matched across sizes)", ylabel=ylabel, xticks=UPDATE_POINTS)
-        axis.set_title("Endpoint mean +/- sample SD across 3 paired seeds", fontsize=10)
-    _decorate(learning, axes, "Matched-update learning curves | training cohort expansion",
-              "159 development Cases unchanged | 128-Case epochs 10/20/30/40/50 versus 256-Case epochs 5/10/15/20/25")
+        axis.set_title(f"Endpoint mean +/- sample SD across {len(seeds)} paired seeds", fontsize=10)
+    _decorate(learning, axes, "Matched-update learning curves | " + ("five additional seeds" if replication else "training cohort expansion"),
+              "159 development Cases unchanged | 128-Case epochs 10/20/30/40/50 versus 256-Case epochs 5/10/15/20/25",
+              replication=replication)
 
     endpoint, axes = plt.subplots(1, 3, figsize=(15, 7))
     for axis, metric, ylabel in zip(axes, ("brier", "auroc", "mean_case_dice"),
@@ -205,32 +233,68 @@ def _render_figures(runs):
                                     "Mean Case Dice (higher is better)")):
         for depth in DEPTHS:
             means, sd = _mean_sd([[runs[size, depth, seed]["development_subset"][str(depth)][metric]
-                                  for size in SIZES] for seed in SEEDS])
+                                  for size in SIZES] for seed in seeds])
             axis.errorbar((0, 1), means, yerr=sd, color=DEPTH_COLORS[depth],
                           marker="o" if depth == 2 else "s", markersize=6, linewidth=1.8,
                           capsize=4, label=f"Separately trained {depth}-step endpoints")
         axis.set(xlabel="Number of training Cases", ylabel=ylabel, xticks=(0, 1),
                  xticklabels=("128 Cases\n50 epochs", "256 Cases\n25 epochs"), xlim=(-.2, 1.2))
         axis.set_title("Fixed 3,200 updates per fitted model", fontsize=10)
-    _decorate(endpoint, axes, "Endpoint comparison | nested 128/256-Case training cohorts",
-              "159 development Cases unchanged | connecting lines compare separate fitted models, not intermediate readouts")
+    _decorate(endpoint, axes, "Endpoint comparison | " + ("five additional seeds" if replication else "nested 128/256-Case training cohorts"),
+              "159 development Cases unchanged | connecting lines compare separate fitted models, not intermediate readouts",
+              replication=replication)
+    figures = [("learning_curves", learning), ("endpoint_comparison", endpoint)]
+    if replication:
+        effects, axes = plt.subplots(1, 3, figsize=(15, 7))
+        gains, data_benefits = _seed_effects(runs, seeds)
+        x = np.arange(len(seeds))
+        for offset, size, color in ((-.17, 128, "#666666"), (.17, 256, "#0072B2")):
+            axes[0].bar(x+offset, gains[size], width=.32, color=color, alpha=.85,
+                        label=f"{size} Cases: depth benefit")
+        axes[0].set(ylabel="G = Brier2 - Brier4 (positive favors 4 steps)")
+        axes[0].set_title(f"Depth benefit by paired seed\nMean G128: {np.mean(gains[128]):+.4f}; G256: {np.mean(gains[256]):+.4f}", fontsize=10)
+        interaction = gains[256] - gains[128]
+        axes[1].bar(x, interaction, width=.6,
+                    color=["#0072B2" if value >= 0 else "#D55E00" for value in interaction], alpha=.85)
+        axes[1].axhline(float(np.mean(interaction)), color="#111111", linestyle="--", linewidth=1.4)
+        axes[1].set(ylabel="G256 - G128 (positive: greater depth benefit)")
+        axes[1].set_title(f"Data size x depth interaction\nMean: {np.mean(interaction):+.4f}", fontsize=10)
+        if np.max(np.abs(interaction)) < 1e-12:
+            # Avoid presenting floating-point roundoff as a visible effect.
+            axes[1].set_ylim(-1e-4, 1e-4)
+        for offset, depth in ((-.17, 2), (.17, 4)):
+            axes[2].bar(x+offset, data_benefits[depth], width=.32, color=DEPTH_COLORS[depth], alpha=.85,
+                        label=f"{depth}-step data-size benefit")
+        axes[2].set(ylabel="Brier128 - Brier256 (positive favors 256 Cases)")
+        axes[2].set_title("Data-size benefit at each trained depth", fontsize=10)
+        for axis in axes:
+            axis.axhline(0, color="#555555", linewidth=.9)
+            axis.set(xlabel="Additional training seed", xticks=x, xticklabels=[str(seed) for seed in seeds])
+            axis.margins(y=.25)
+        _decorate(effects, axes, "Paired seed effects | five additional seeds only",
+                  "Separately trained endpoints at 3,200 updates | fixed nested 128/256-Case cohorts",
+                  replication=True, legend_axes=[axes[0], axes[2]])
+        figures.append(("seed_effects", effects))
     payloads = {}
     try:
-        for name, figure in (("learning_curves", learning), ("endpoint_comparison", endpoint)):
+        for name, figure in figures:
             for extension in ("png", "svg"):
                 buffer = BytesIO()
                 figure.savefig(buffer, format=extension, dpi=180)
                 payloads[f"{name}.{extension}"] = buffer.getvalue()
     finally:
-        plt.close(learning)
-        plt.close(endpoint)
+        for _, figure in figures:
+            plt.close(figure)
     return payloads
 
 
 def create_figures(report_dir, reference_report_dir, output_dir, *, protocol_path=DEFAULT_PROTOCOL):
     runs = load_reports(report_dir, reference_report_dir, protocol_path=protocol_path)
     output_dir = Path(output_dir)
-    names = [f"{name}.{extension}" for name in ("endpoint_comparison", "learning_curves")
+    figure_names = ["endpoint_comparison", "learning_curves"]
+    if tuple(sorted({key[2] for key in runs})) == REPLICATION_SEEDS:
+        figure_names.append("seed_effects")
+    names = [f"{name}.{extension}" for name in figure_names
              for extension in ("png", "svg")]
     if any((output_dir / name).exists() for name in names):
         raise ValueError("Figure output already exists; choose a fresh output directory.")

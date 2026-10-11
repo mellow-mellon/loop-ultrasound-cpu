@@ -1,0 +1,125 @@
+{
+  "status": "completed_cpu_case_expansion256_five_seed_replication",
+  "report_date": "2026-10-11",
+  "report_timezone": "America/Los_Angeles",
+  "protocol_lock_commit": "a4662decd39d0280e5c3be51e758cea82bc4a02b",
+  "analysis_code_commit": "f1361c2ec87cfcdd67aeb56ab292ca91c38048f9",
+  "protocol_sha256": "e858d379e795d1af2c5e5ff2dc1e1c0d93f8a2a86ba5f16349ad71837af65994",
+  "training_source_sha256": "c3a1d28753504f5751d97db125c7a6515ae2db025d68ae15f72b5f1e085dc317",
+  "launcher_source_sha256": "2c3717e0ecab7c0a3a4e7309baaff673dbcf95cedc87d4fce3ef5afd00c56f93",
+  "shared_runner_source_sha256": "211281ea7d5affd0df7d0afd1f4fe449e3f8fab7bdf6e11eabb4bb739adc04cc",
+  "analysis_module_sha256": "5137e98580017588ac65341e03a9a41ba27e3051e597676c661b7b926b3130f9",
+  "new_runs_completed": 10,
+  "paired_128_reference_runs_validated": 10,
+  "secondary_original_256_runs_validated": 6,
+  "secondary_original_128_runs_validated": 6,
+  "primary_training_seeds": [
+    53,
+    71,
+    89,
+    107,
+    131
+  ],
+  "secondary_combined_training_seeds": [
+    17,
+    29,
+    43,
+    53,
+    71,
+    89,
+    107,
+    131
+  ],
+  "primary_seeds_only": true,
+  "historical_and_combined_results_secondary_only": true,
+  "new_epochs": 25,
+  "reference_epochs": 50,
+  "train_cases": 256,
+  "train_images": 445,
+  "reference_train_cases": 128,
+  "reference_train_images": 227,
+  "development_cases": 159,
+  "development_images": 281,
+  "optimizer_updates_per_fit": 3200,
+  "optimizer_updates_new_total": 32000,
+  "total_case_exposures_per_fit": 6400,
+  "device": "cpu",
+  "concurrent_workers": 2,
+  "torch_threads_per_worker": 2,
+  "both_workers_normal_exit": true,
+  "worker_recorded_elapsed_seconds": [
+    580.1268248749548,
+    732.0689680420328
+  ],
+  "summed_training_loop_seconds": 1175.441185624979,
+  "timing_scope": "Recorded worker/training timers exclude prepare-only feature verification and are not an architecture speed benchmark.",
+  "current_core_and_launcher_match_locked_source": true,
+  "public_protocol_byte_identical": true,
+  "paired_initialization": {
+    "same_across_data_sizes_and_depths_within_seed": true,
+    "by_seed": [
+      {
+        "seed": 53,
+        "initialization_sha256": "d510b03d08e8c3377edc7edb730b8199e6fb7f630de7b2a611948d21f60b335f"
+      },
+      {
+        "seed": 71,
+        "initialization_sha256": "46c2853a03d737e05a9ae49898c99ac88b5b047ac23162687c484d6bff2a3cae"
+      },
+      {
+        "seed": 89,
+        "initialization_sha256": "44cf4a89f06f7d71a234b876cde94eb3ace0792aca818e422e19b873a13f0802"
+      },
+      {
+        "seed": 107,
+        "initialization_sha256": "e0fe9bdc604437aa910ea1b1c1b199bcc8db25241f6b67c2c4e0bc7bf00490ee"
+      },
+      {
+        "seed": 131,
+        "initialization_sha256": "52057548b91905051d5dbb7c6ee52c56d4aae79e53d3597001fe1b7782b05581"
+      }
+    ]
+  },
+  "alignment_checks": {
+    "expected_fit_count_each_data_size": 10,
+    "all_primary_terminal_fits_present": true,
+    "strictly_nested_training_cases": true,
+    "all_shared_training_views_and_labels_preserved": true,
+    "same_development_case_view_label_sets": true,
+    "train_tune_only_records": true,
+    "no_cross_split_case_or_image_overlap": true,
+    "matching_locked_source_and_init_digests": true,
+    "equal_completed_optimizer_updates": true,
+    "locked_baseline_artifact_bytes_verified": true,
+    "new_25_reference_50_fixed_epoch_histories": true,
+    "endpoint_metrics_recomputed_from_case_traces": true
+  },
+  "baseline_artifact_bindings": {
+    "new256": {
+      "predictions_sha256": "97c67ee50196a5f072439e1d4a31ee95b58ce59fc0a376aad392dde643850779",
+      "summary_sha256": "28f3caecad0ad7f3a2f0f30ab6e8239c7c25e2da48e1adfc117df85de4822ae5"
+    },
+    "reference128": {
+      "predictions_sha256": "66df5d5d3ba8b3638f9ab603eb654c7b129d705066c9f4ee4786e1af4bc921de",
+      "summary_sha256": "924f7df520c798893f47afdea1eca5870f856e2c9943cca41f8e3ab8d26dedec"
+    }
+  },
+  "classification_controls": "Existing fixed 256/128 train-only baseline fits reused with identical cohorts; their bytes/method/records recomputed and validated.",
+  "primary_G256_mean": -0.009763282461894078,
+  "primary_G256_ci95": [
+    -0.02967465447744939,
+    0.010599246182309776
+  ],
+  "primary_G256_positive_seed_count": 2,
+  "primary_G256_negative_seed_count": 3,
+  "primary_data_size_depth_interaction_mean": -0.05594773535300792,
+  "primary_inference": "No stable extra-depth probability benefit in this 256-Case frozen-feature fixed-update terminal-supervision recipe. Depth2 improves more under expansion; paired depth benefit falls at all five new seeds. This does not identify a pure data-size cause or a general recurrence failure.",
+  "independent_review": "All 32 fresh/paired/historical fits checked from raw records; source/init/cohort/nesting/history/update counts and raw Brier/NLL verified; five/three/eight paired Case bootstrap intervals independently recomputed.",
+  "figure_visual_review": "All three actual PNGs inspected: readable axes/legends and primary-five-only labels; update and exposure differences explicit; no clipping.",
+  "clinical_validation": false,
+  "mechanism_identified": false,
+  "patient_mapping": "unverified_Case_grouped_only",
+  "calibration_and_test_predictions": false,
+  "automatically_started_larger_or_gpu_experiment": false,
+  "scope": "Previously observed tune; fixed updates with 50/25 contacts per Case and different across-size sampling; conditional Case intervals exclude fitted-seed population uncertainty; frozen features/no augmentation."
+}

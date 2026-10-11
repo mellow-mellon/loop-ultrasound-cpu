@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "command": "PYTHONPATH=src .venv/bin/python -m pytest -q",
+  "tests_passed": 270,
+  "subtests_passed": 41,
+  "elapsed_seconds": 4.92,
+  "execution_date": "2026-10-11",
+  "scope": "Existing suite plus new worker/protocol protection and strict five-new-seed paired analysis, gate and old-reference checks; plotting also passed synthetic visual and input-rejection checks."
+}

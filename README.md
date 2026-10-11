@@ -199,6 +199,27 @@ python -m loop_ultrasound.seed_replication \
 
 Finish preparation before training. The default single worker executes all ten fits sequentially; two workers use disjoint `--workers 2 --worker-index 0` and `--workers 2 --worker-index 1` commands, each with two CPU threads. The previous feature cache can be reused, but model weights are freshly initialized. Source and initial-parameter digests are fixed before the first new fit. Calibration and test predictions remain absent.
 
+After all ten fits complete, analyze the new pairs as primary and the earlier six terminal fits as a secondary eight-seed description:
+
+```bash
+python -m loop_ultrasound.analyze_seed_replication \
+  --protocol outputs/cpu-seed-replication128/protocol.json \
+  --run-dirs outputs/cpu-seed-replication128/SJ-depth*-terminal-seed* \
+  --reference-protocol outputs/cpu-depth-supervision128/protocol.json \
+  --reference-run-dirs outputs/cpu-depth-supervision128/SJ-depth*-terminal-seed* \
+  --baseline-dir outputs/cpu-expanded128/baselines \
+  --output outputs/cpu-seed-replication128/seed_replication_analysis.json
+```
+
+The analyzer validates every Case, view, label, source, paired initialization and final training budget before recomputing metrics from local predictions. It also reports high-confidence mistakes, exact probability saturation and paired classification corrections separately from Brier improvement. Aggregate-only plots use only the five new seeds:
+
+```bash
+python -m loop_ultrasound.plot_seed_replication \
+  --report-dir reports/seed_replication128 \
+  --protocol configs/cpu_seed_replication128.json \
+  --output-dir outputs/seed-replication-figures
+```
+
 ## Data and code attribution
 
 BUS-BRA is described in [the dataset publication](https://pubmed.ncbi.nlm.nih.gov/37937827/) and distributed under CC-BY-4.0 on Zenodo. Download it from the official source; it is not bundled here. Follow the authors' citation requirements when reporting experiments. The encoder's upstream license applies to its weights. This repository's original code is MIT; the authors' MATLAB training implementation was not copied. Do not upload `data/`, `outputs/`, weights or individual prediction files to this public repository.

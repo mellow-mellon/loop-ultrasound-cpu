@@ -1,0 +1,88 @@
+{
+  "status": "completed_cpu_case_expansion256",
+  "report_date": "2026-10-11",
+  "report_timezone": "America/Los_Angeles",
+  "code_commit": "5b71131c9aaeb211f010e0a33884282ae4f73720",
+  "protocol_sha256": "8a2ca2b3071681aefd76043d7ad8221fa26ec627c59fc19df5ad9838e31877cd",
+  "training_source_sha256": "c3a1d28753504f5751d97db125c7a6515ae2db025d68ae15f72b5f1e085dc317",
+  "launcher_source_sha256": "211281ea7d5affd0df7d0afd1f4fe449e3f8fab7bdf6e11eabb4bb739adc04cc",
+  "analysis_module_sha256": "6b564034203c2c1e5384f12886eafc5b917ff4e08e5f38b14adc424731685d17",
+  "new_runs_completed": 6,
+  "reference_runs_validated": 6,
+  "training_seeds": [
+    17,
+    29,
+    43
+  ],
+  "train_cases": 256,
+  "train_images": 445,
+  "reference_train_cases": 128,
+  "reference_train_images": 227,
+  "tune_cases": 159,
+  "tune_images": 281,
+  "new_epochs": 25,
+  "reference_epochs": 50,
+  "optimizer_updates_per_fit": 3200,
+  "optimizer_updates_new_total": 19200,
+  "total_case_exposures_per_fit": 6400,
+  "paired_initialization": {
+    "same_across_data_sizes_and_depths_within_seed": true,
+    "by_seed": [
+      {
+        "seed": 17,
+        "initialization_sha256": "32422619b14bca9f4fd93650c6f5c047c91e2ef28548f425d6f48ac4d880c1f2"
+      },
+      {
+        "seed": 29,
+        "initialization_sha256": "6db8a3459a6235c51053b6cdb66fecb1a4b47a510974c76e0c5e857fa55b012b"
+      },
+      {
+        "seed": 43,
+        "initialization_sha256": "c7e062c100f640dca629e42735a7dd440c241dbc7f4962ebbf0c0df66f485c83"
+      }
+    ]
+  },
+  "alignment_checks": {
+    "exactly_six_new_and_six_reference_terminal_fits": true,
+    "strictly_nested_training_cases": true,
+    "all_shared_training_views_and_labels_preserved": true,
+    "same_development_case_view_label_sets": true,
+    "train_tune_only_records": true,
+    "no_cross_split_case_or_image_overlap": true,
+    "matching_locked_source_and_init_digests": true,
+    "equal_completed_optimizer_updates": true,
+    "new_25_reference_50_fixed_epoch_histories": true,
+    "endpoint_metrics_recomputed_from_case_traces": true
+  },
+  "device": "cpu",
+  "concurrent_workers": 2,
+  "torch_threads_per_worker": 2,
+  "both_workers_normal_exit": true,
+  "worker_recorded_elapsed_seconds": [
+    345.0826162910089,
+    433.1483466249774
+  ],
+  "summed_training_loop_seconds": 692.9621899570338,
+  "timing_scope": "Recorded worker/training timers exclude preparation/feature encoding/control fitting and are not an architecture speed benchmark.",
+  "trainable_parameters": 714530,
+  "frozen_encoder_parameters": 5717416,
+  "current_core_and_launcher_match_locked_source": true,
+  "public_protocol_byte_identical": true,
+  "classification_controls_refitted_on256": true,
+  "matched_update_points": [
+    640,
+    1280,
+    1920,
+    2560,
+    3200
+  ],
+  "primary_inference": "Data-expansion directions improve Brier/AUROC/Dice for both depths, but diagnostic intervals cross zero. Depth benefit is mixed across seeds and remains uncertain; interaction near zero does not establish stronger recurrence benefit.",
+  "independent_review": "Six new plus six old source/cohort/init/history/update/endpoint checks and primary paired intervals independently verified; Brier uses raw probabilities and only NLL is clipped.",
+  "figure_visual_review": "Both actual endpoint and matched-update PNGs inspected; readable legends/axes, no clipping, explicit unequal per-Case exposures and conditional scope.",
+  "clinical_validation": false,
+  "mechanism_identified": false,
+  "patient_mapping": "unverified_Case_grouped_only",
+  "calibration_and_test_predictions": false,
+  "automatically_started_larger_or_gpu_experiment": false,
+  "scope": "Observed tune, fixed updates with 50/25 per-Case exposures and different across-size sampling; three paired fitted seeds; conditional Case intervals; frozen/no augmentation."
+}

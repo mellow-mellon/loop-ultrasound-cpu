@@ -1,0 +1,164 @@
+{
+  "arms": [
+    "SJ"
+  ],
+  "augment": false,
+  "batch_size": 2,
+  "bootstrap": {
+    "conditional_on_fitted_models": true,
+    "draws": 2000,
+    "seed": 17,
+    "unit": "Case"
+  },
+  "budget": "Ten fresh prefixes at2560 plus twenty640-update tails =38400 actual new updates. Each effective trajectory completes3200; depth4 uses extra FLOPs.",
+  "cached_frozen_features": true,
+  "calibration_and_test_predictions": false,
+  "clinical_validation": false,
+  "depths": [
+    2,
+    4
+  ],
+  "device": "cpu",
+  "effective_endpoint_trajectories": 20,
+  "encoder_sha256": "d2169b631631699b652d392db7647472cf194a9d01fe402ff11470c4dd374eb0",
+  "epochs": 25,
+  "eval_every": 5,
+  "full_state_fork": true,
+  "initialization_sha256_by_seed": {
+    "107": "e0fe9bdc604437aa910ea1b1c1b199bcc8db25241f6b67c2c4e0bc7bf00490ee",
+    "131": "52057548b91905051d5dbb7c6ee52c56d4aae79e53d3597001fe1b7782b05581",
+    "53": "d510b03d08e8c3377edc7edb730b8199e6fb7f630de7b2a611948d21f60b335f",
+    "71": "46c2853a03d737e05a9ae49898c99ac88b5b047ac23162687c484d6bff2a3cae",
+    "89": "44cf4a89f06f7d71a234b876cde94eb3ace0792aca818e422e19b873a13f0802"
+  },
+  "interpretation": "Exploratory optimizer-policy intervention on observed tune, not a pure gradient-size cause or clinical validation; no sweep or best-epoch selection.",
+  "launcher_source_sha256": "df36dbdae561ea0d7b842437000d95e1fddaed496c977cc7685ea18e210016e0",
+  "learning_rate": 0.0003,
+  "manifest_sha256": "47a065ec48faca9fb37c17f841a1c2414a6bd902e55f3c93a90dba3df3eaf0ac",
+  "model_selection": "fixed_final_epoch_no_best_epoch_selection",
+  "patient_mapping": "unverified_Case_grouped_only",
+  "phase": "exploratory_tail_optimizer_intervention_on_observed_tune",
+  "policies": [
+    "constant",
+    "low_tail"
+  ],
+  "prefix_epochs": 20,
+  "prefix_updates": 2560,
+  "primary_interaction": "H = G_low_tail - G_constant; G_policy = Brier_depth2 - Brier_depth4",
+  "primary_metric": "Case Brier at fixed update3200",
+  "reference_epochs": 25,
+  "reference_protocol_sha256": "e858d379e795d1af2c5e5ff2dc1e1c0d93f8a2a86ba5f16349ad71837af65994",
+  "reference_run_artifact_bindings": {
+    "seed107_depth2": {
+      "checkpoint_sha256": "993d6796ed12e9ee22b4947180bb9957137c87767180c51c64c720a03c8c3d30",
+      "development_predictions_sha256": "6f667e4da2df8d8176eac9583d3a8c2c0cc7491332f4fbd811fd721d926a7469",
+      "summary_sha256": "278d48b0b25693507ffdcabb8d0d599f97565b83cd0c7bdf51d7329f779f8359",
+      "training_predictions_sha256": "821b7bfba3ee1a67e660033f4a42e05eb9e4109002f4ff2b74cd8de3ba8a8f77"
+    },
+    "seed107_depth4": {
+      "checkpoint_sha256": "1681b0915e1a1609ecbaae397de1160367e02d957d5201645518d266790cc651",
+      "development_predictions_sha256": "979203b37345ad099684343b7551379ce846c953540927978023b37a18d59c9f",
+      "summary_sha256": "1c57348681f2ec9b3ff6fc419d5647a1388f792ffa8314aaf3fef02816867943",
+      "training_predictions_sha256": "10b2809862cb2dd828bf97aced00726017cb93e8519b083bccf79bf47be8ed59"
+    },
+    "seed131_depth2": {
+      "checkpoint_sha256": "6fcb145edce2bd77a50610b4eeb83a40ccc5a26d288aed132301f254b7426d8e",
+      "development_predictions_sha256": "98319b22c8913b2e950cf7c441b4703407532b20f6112970614057217b572af3",
+      "summary_sha256": "d8f6a44784b7ce227d35ddc8ebe11cff0fe792d1541a6768ca7f50a61e2d5056",
+      "training_predictions_sha256": "2ac34d59ad1ca1b8bf37aca469d2a2576e0049f28a8df9d1801144db0d6efb4c"
+    },
+    "seed131_depth4": {
+      "checkpoint_sha256": "19d74ba3ee9cc7bab6da91739bc0f6329779c3aea3b6f4c91009819aff96331f",
+      "development_predictions_sha256": "8d460cd5270874e550d93b798c450b4617c3a44232c76088933af28695653c3b",
+      "summary_sha256": "6b5a38585a2afef871a980624c5763bcfbe4c524ade3540c9a213bc457ea47d5",
+      "training_predictions_sha256": "b04217473f14de4826e710d178bf163434fc18080c88ec3c5478d3a54ff3b57a"
+    },
+    "seed53_depth2": {
+      "checkpoint_sha256": "503f5d79f19528a3b5ef8fbc2a349c1225d4eefd8f6ae8030ade013203aea108",
+      "development_predictions_sha256": "9f3c0ac456d90e039d3d9cf45f001296dd468c9776be59dc6cb1a1fdd8dfffa4",
+      "summary_sha256": "8041094ff8a0d35f29899f692c3a9fde906f9a00bbcd2925c897ad201c9e160a",
+      "training_predictions_sha256": "a3bc4618a33b8be7e8cc8a3d64309cd892fc1bc3421154582f27b52ebb13bb17"
+    },
+    "seed53_depth4": {
+      "checkpoint_sha256": "bba440eab2c0adf38b9ff53efafaaff0ecc050869636a0f300da49819b3b8bb8",
+      "development_predictions_sha256": "dee1a9bae5daaca400762d160541ed9b4a3ef9ab961189af9148438d91d8bf24",
+      "summary_sha256": "f37a9720216900a7822f48524413bbbf2c46345a833c8cfb6fac36730cdc1aeb",
+      "training_predictions_sha256": "e3ba7ddc6efbe24b8d79c8ca70dbc63a3cf8750e508d7e5cc50bce41d93428fd"
+    },
+    "seed71_depth2": {
+      "checkpoint_sha256": "c004ee6e8aeb0a5c15d29b8a76a15b5260e72645023bf062b99c61a95de378cf",
+      "development_predictions_sha256": "ad0f06b7f245ff7bcd63679d496e713f9ede775180c72f2622788400d1efc205",
+      "summary_sha256": "be46dbbc7dd05817d5d83c9e14fd8a04fc920022809ceff4bb5a9f5a2af2eb31",
+      "training_predictions_sha256": "273082665b1c0e946da063beade7259ed569b02e1c1a782ab8b8920b3177f8e0"
+    },
+    "seed71_depth4": {
+      "checkpoint_sha256": "96456eb8d82bae9d98111c59984b697c2cf428a3d6c386db30570e034a298977",
+      "development_predictions_sha256": "945f5839d781c2c16055045abf280b94b7ceb55feeec6f1e2f8bedc8a917ee17",
+      "summary_sha256": "ad47cf5af922cca066baa7c865301e455991d1f4463d6b4cd5bd1cde1001f8b1",
+      "training_predictions_sha256": "88dd3fcfee9623c40160f2c4bdf9ffa4a604c661d51f7ab0f789b10b641fdaf0"
+    },
+    "seed89_depth2": {
+      "checkpoint_sha256": "993fcfec6091c5046b8551b82016304b3ac8f5e580d5d54f59a3a0299c50e148",
+      "development_predictions_sha256": "2eedec06a7a15acf15158c9b194928ec5f7d85f913a6af76322b4bce16108d58",
+      "summary_sha256": "4cf85e3a69a236095e488a2e384762ec94cee2056ac8341dd14749dc9038415d",
+      "training_predictions_sha256": "1fe91db2881f5bd476755b62856cf76a7883227b6796a49d57c5aa9c14c5f435"
+    },
+    "seed89_depth4": {
+      "checkpoint_sha256": "97fff1cc83df1cb0e5d768c389b10bfa45851e24e459f0a072325044756cf379",
+      "development_predictions_sha256": "2ee07194c28d64caa72295b64d6b326ae19ca8867b55cc846e6312563492d374",
+      "summary_sha256": "116f3587d39990887af45743a948e51ba4c7eadb88b9ce8d0e949044f3b7f1b3",
+      "training_predictions_sha256": "eb3dc9532d043b513d47acb512022e5435f0781d4bc18b74e1b9307b961cae29"
+    }
+  },
+  "sampling": "proportional",
+  "secondary_metrics": [
+    "G_low_tail",
+    "NLL",
+    "AUROC",
+    "Dice",
+    "prefix_to_endpoint",
+    "gradient_clipping",
+    "classification_and_mask_training_losses"
+  ],
+  "seeds": [
+    53,
+    71,
+    89,
+    107,
+    131
+  ],
+  "segmentation_weight": 1.0,
+  "selection_seed": 20261004,
+  "shared_prefixes": 10,
+  "status": "fixed_before_cpu_tail_lr_control",
+  "supervisions": [
+    "terminal"
+  ],
+  "tail_epochs": 5,
+  "tail_learning_rates": {
+    "constant": 0.0003,
+    "low_tail": 3e-05
+  },
+  "tail_policy_definition": "Single step reduction to3e-5 for updates2561..3200; constant branch remains3e-4. Both AdamW gradient and decoupled weight-decay step magnitudes change.",
+  "tail_updates": 640,
+  "threads": 2,
+  "total_actual_new_updates": 38400,
+  "train": {
+    "benign": 174,
+    "cases": 256,
+    "fingerprint": "cc06a11f99471c4723cb3ee867a34b758e470664ea942ae747d2baf15f447773",
+    "images": 445,
+    "malignant": 82
+  },
+  "training_source_sha256": "c3a1d28753504f5751d97db125c7a6515ae2db025d68ae15f72b5f1e085dc317",
+  "training_updates_per_run": 3200,
+  "tune": {
+    "benign": 108,
+    "cases": 159,
+    "fingerprint": "b230c7456222a5b7757d2309f31c604cd9a57cb870d0b2e58120686e6abce8a8",
+    "images": 281,
+    "malignant": 51
+  },
+  "updates_per_epoch": 128,
+  "warm_starts": false
+}

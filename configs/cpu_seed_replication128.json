@@ -1,0 +1,91 @@
+{
+  "arms": [
+    "SJ"
+  ],
+  "augment": false,
+  "batch_size": 2,
+  "budget": "Same optimizer updates and Case exposure; trained4 uses additional compute, not equal FLOPs",
+  "cached_frozen_features": true,
+  "calibration_and_test_predictions": false,
+  "clinical_validation": false,
+  "depths": [
+    2,
+    4
+  ],
+  "device": "cpu",
+  "encoder_sha256": "d2169b631631699b652d392db7647472cf194a9d01fe402ff11470c4dd374eb0",
+  "epochs": 50,
+  "eval_every": 5,
+  "initialization_sha256_by_seed": {
+    "107": "e0fe9bdc604437aa910ea1b1c1b199bcc8db25241f6b67c2c4e0bc7bf00490ee",
+    "131": "52057548b91905051d5dbb7c6ee52c56d4aae79e53d3597001fe1b7782b05581",
+    "53": "d510b03d08e8c3377edc7edb730b8199e6fb7f630de7b2a611948d21f60b335f",
+    "71": "46c2853a03d737e05a9ae49898c99ac88b5b047ac23162687c484d6bff2a3cae",
+    "89": "44cf4a89f06f7d71a234b876cde94eb3ace0792aca818e422e19b873a13f0802"
+  },
+  "intermediate_terminal_predictions": "Diagnostic only; no directly trained intermediate readout",
+  "interpretation": "Training-randomness robustness on already observed tune Cases; positive gate only recommends the separate Case-expansion experiment.",
+  "launcher_source_sha256": "9207aaa40bd6411ae029508909b4f3923ececd9590d10d0255673a4e0d46d55d",
+  "learning_rate": 0.0003,
+  "manifest_sha256": "47a065ec48faca9fb37c17f841a1c2414a6bd902e55f3c93a90dba3df3eaf0ac",
+  "model_selection": "fixed_final_epoch_no_best_epoch_selection",
+  "patient_mapping": "unverified_Case_grouped_only",
+  "phase": "exploratory_training_randomness_replication_on_observed_tune",
+  "primary_depth_benefit": "Brier_trained2_endpoint - Brier_trained4_endpoint, NEW five terminal-supervision seeds only",
+  "primary_metric": "Case Brier at the final readout of each separately trained model",
+  "reference_protocol_sha256": "bb9def445cd113de025c5e826cbc423e86f883f6e16de7ae2244013f3df3a688",
+  "reference_results_scope": "Earlier three terminal seeds are secondary descriptive evidence; do not include them in the primary gate.",
+  "reference_seeds": [
+    17,
+    29,
+    43
+  ],
+  "sampling": "proportional",
+  "screening_gate": {
+    "definition": "All three conditions on NEW five seeds; engineering resource screen only, not significance, clinical validation, or an automatic run authorization.",
+    "maximum_mean_nll_worsening": 0.0,
+    "minimum_positive_seeds": 4,
+    "require_all_leave_one_seed_out_means_positive": true
+  },
+  "secondary_metrics": [
+    "AUROC",
+    "NLL",
+    "mean_Case_Dice",
+    "high_confidence_errors",
+    "paired_case_corrections_and_deteriorations"
+  ],
+  "seeds": [
+    53,
+    71,
+    89,
+    107,
+    131
+  ],
+  "segmentation_weight": 1.0,
+  "selection_seed": 20261004,
+  "status": "fixed_before_seed_replication_training",
+  "supervision_loss": {
+    "terminal": "Identical loss only on final readout; no depth divisor; full recurrent backpropagation"
+  },
+  "supervisions": [
+    "terminal"
+  ],
+  "threads": 2,
+  "train": {
+    "benign": 87,
+    "cases": 128,
+    "fingerprint": "f407cbbad125ab0c4ce7de1c80fdf1cad5e4e0a7f2d7556fa710438603f5ef3e",
+    "images": 227,
+    "malignant": 41
+  },
+  "training_source_sha256": "c3a1d28753504f5751d97db125c7a6515ae2db025d68ae15f72b5f1e085dc317",
+  "training_updates_per_run": 3200,
+  "tune": {
+    "benign": 108,
+    "cases": 159,
+    "fingerprint": "b230c7456222a5b7757d2309f31c604cd9a57cb870d0b2e58120686e6abce8a8",
+    "images": 281,
+    "malignant": 51
+  },
+  "warm_starts": false
+}

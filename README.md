@@ -184,6 +184,21 @@ python -m loop_ultrasound.plot_depth_supervision \
   --output-dir outputs/depth-supervision-figures
 ```
 
+## CPU replication: five new training seeds
+
+The next terminal-only screen pairs separately trained depths 2/4 at five new seeds: 53, 71, 89, 107 and 131. It preserves the earlier 128/159 Case cohorts, core training code and fixed final epoch 50. See [the prespecified plan](docs/CPU_SEED_REPLICATION_PLAN.md) and [locked configuration](configs/cpu_seed_replication128.json).
+
+The primary resource screen uses only the five new seed pairs: at least four positive Brier benefits, positive mean benefit after removing any one seed, and no worsening of mean NLL. This is a screening rule for proposing a separate data-expansion experiment, not significance, clinical validation, a GPU gate, or automatic authorization to run that experiment. Old seeds may appear only in a secondary combined summary.
+
+```bash
+python -m loop_ultrasound.seed_replication --prepare-only \
+  --reference-protocol outputs/cpu-depth-supervision128/protocol.json --threads 2
+python -m loop_ultrasound.seed_replication \
+  --reference-protocol outputs/cpu-depth-supervision128/protocol.json --threads 2
+```
+
+Finish preparation before training. The default single worker executes all ten fits sequentially; two workers use disjoint `--workers 2 --worker-index 0` and `--workers 2 --worker-index 1` commands, each with two CPU threads. The previous feature cache can be reused, but model weights are freshly initialized. Source and initial-parameter digests are fixed before the first new fit. Calibration and test predictions remain absent.
+
 ## Data and code attribution
 
 BUS-BRA is described in [the dataset publication](https://pubmed.ncbi.nlm.nih.gov/37937827/) and distributed under CC-BY-4.0 on Zenodo. Download it from the official source; it is not bundled here. Follow the authors' citation requirements when reporting experiments. The encoder's upstream license applies to its weights. This repository's original code is MIT; the authors' MATLAB training implementation was not copied. Do not upload `data/`, `outputs/`, weights or individual prediction files to this public repository.

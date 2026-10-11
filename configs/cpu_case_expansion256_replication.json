@@ -1,0 +1,130 @@
+{
+  "arms": [
+    "SJ"
+  ],
+  "augment": false,
+  "baseline_artifact_bindings": {
+    "new256": {
+      "predictions_sha256": "97c67ee50196a5f072439e1d4a31ee95b58ce59fc0a376aad392dde643850779",
+      "summary_sha256": "28f3caecad0ad7f3a2f0f30ab6e8239c7c25e2da48e1adfc117df85de4822ae5"
+    },
+    "reference128": {
+      "predictions_sha256": "66df5d5d3ba8b3638f9ab603eb654c7b129d705066c9f4ee4786e1af4bc921de",
+      "summary_sha256": "924f7df520c798893f47afdea1eca5870f856e2c9943cca41f8e3ab8d26dedec"
+    }
+  },
+  "batch_size": 2,
+  "budget": "Both data sizes complete 3,200 optimizer updates and 6,400 Case exposures; expanded data trades repetition for diversity. Depth4 uses extra recurrent compute; not equal FLOPs.",
+  "cached_frozen_features": true,
+  "calibration_and_test_predictions": false,
+  "classification_controls": "Reuse the already refitted fixed 256/128 train-only controls with identical cohorts and byte-bound artifacts; no new baseline tuning.",
+  "clinical_validation": false,
+  "depths": [
+    2,
+    4
+  ],
+  "device": "cpu",
+  "encoder_sha256": "d2169b631631699b652d392db7647472cf194a9d01fe402ff11470c4dd374eb0",
+  "epochs": 25,
+  "eval_every": 5,
+  "historical_seed_scope": "original_three_secondary_only",
+  "initialization_sha256_by_seed": {
+    "107": "e0fe9bdc604437aa910ea1b1c1b199bcc8db25241f6b67c2c4e0bc7bf00490ee",
+    "131": "52057548b91905051d5dbb7c6ee52c56d4aae79e53d3597001fe1b7782b05581",
+    "53": "d510b03d08e8c3377edc7edb730b8199e6fb7f630de7b2a611948d21f60b335f",
+    "71": "46c2853a03d737e05a9ae49898c99ac88b5b047ac23162687c484d6bff2a3cae",
+    "89": "44cf4a89f06f7d71a234b876cde94eb3ace0792aca818e422e19b873a13f0802"
+  },
+  "intermediate_terminal_predictions": "Diagnostic only; no directly trained intermediate readout",
+  "interpretation": "Five additional fitted seeds on observed tune; no new hard gate or automatic larger/GPU experiment.",
+  "launcher_source_sha256": "2c3717e0ecab7c0a3a4e7309baaff673dbcf95cedc87d4fce3ef5afd00c56f93",
+  "learning_rate": 0.0003,
+  "manifest_sha256": "47a065ec48faca9fb37c17f841a1c2414a6bd902e55f3c93a90dba3df3eaf0ac",
+  "matched_update_points": [
+    640,
+    1280,
+    1920,
+    2560,
+    3200
+  ],
+  "model_selection": "fixed_final_epoch_no_best_epoch_selection",
+  "nested_cohort_check": {
+    "reference_cases_subset": true,
+    "reference_images_subset": true,
+    "shared_view_labels_match": true
+  },
+  "nested_cohort_verified": true,
+  "original_expansion_protocol_sha256": "8a2ca2b3071681aefd76043d7ad8221fa26ec627c59fc19df5ad9838e31877cd",
+  "paired_initialization_scope": "Identical within seed across depths and training sizes; Case order/view sampling match within each size, not across sizes.",
+  "patient_mapping": "unverified_Case_grouped_only",
+  "phase": "exploratory_nested_case_expansion_training_randomness_replication_on_observed_tune",
+  "primary_depth_benefit": "G256 = Brier_trained2_endpoint - Brier_trained4_endpoint, NEW five matched seeds only",
+  "primary_metric": "Case Brier at the final readout of each separately trained model",
+  "reference_epochs": 50,
+  "reference_exposures_per_case": 50,
+  "reference_protocol_sha256": "1c0b2c86b0581855b8ec0163308a9ab3809058d7cd879c4c95b6aaa05780b2e3",
+  "reference_seeds": [
+    53,
+    71,
+    89,
+    107,
+    131
+  ],
+  "reference_train": {
+    "benign": 87,
+    "cases": 128,
+    "fingerprint": "f407cbbad125ab0c4ce7de1c80fdf1cad5e4e0a7f2d7556fa710438603f5ef3e",
+    "images": 227,
+    "malignant": 41
+  },
+  "reference_updates_per_epoch": 64,
+  "sampling": "proportional",
+  "secondary_combined_scope": "All eight matched seeds may be summarized separately as descriptive secondary evidence; cannot replace the primary five-seed result.",
+  "secondary_data_size_depth_interaction": "G256 - G128 using the same NEW five seeds and evaluated Cases",
+  "secondary_metrics": [
+    "AUROC",
+    "NLL",
+    "mean_Case_Dice",
+    "train_tune_Brier_gap",
+    "high_confidence_errors",
+    "matched_update_learning"
+  ],
+  "seeds": [
+    53,
+    71,
+    89,
+    107,
+    131
+  ],
+  "segmentation_weight": 1.0,
+  "selection_seed": 20261004,
+  "shared_runner_source_sha256": "211281ea7d5affd0df7d0afd1f4fe449e3f8fab7bdf6e11eabb4bb739adc04cc",
+  "status": "fixed_before_case_expansion_seed_replication_training",
+  "supervision_loss": {
+    "terminal": "Identical loss only on final readout; no depth divisor; full recurrent backpropagation"
+  },
+  "supervisions": [
+    "terminal"
+  ],
+  "threads": 2,
+  "total_training_case_exposures_per_run": 6400,
+  "train": {
+    "benign": 174,
+    "cases": 256,
+    "fingerprint": "cc06a11f99471c4723cb3ee867a34b758e470664ea942ae747d2baf15f447773",
+    "images": 445,
+    "malignant": 82
+  },
+  "training_exposures_per_case": 25,
+  "training_source_sha256": "c3a1d28753504f5751d97db125c7a6515ae2db025d68ae15f72b5f1e085dc317",
+  "training_updates_per_run": 3200,
+  "tune": {
+    "benign": 108,
+    "cases": 159,
+    "fingerprint": "b230c7456222a5b7757d2309f31c604cd9a57cb870d0b2e58120686e6abce8a8",
+    "images": 281,
+    "malignant": 51
+  },
+  "updates_per_epoch": 128,
+  "warm_starts": false
+}

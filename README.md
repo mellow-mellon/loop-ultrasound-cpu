@@ -147,7 +147,7 @@ Before a formal study:
 
 ## CPU follow-up: separately trained depth × supervision
 
-The next screen holds the shared+joint architecture fixed and freshly trains 2-step/4-step models under all-readout/terminal-only supervision, at seeds 17/29/43. It retains the same 128/159 Case cohorts and the fixed 50-epoch schedule. See [the locked experiment plan](docs/CPU_DEPTH_SUPERVISION_PLAN.md) and [executed configuration](configs/cpu_depth_supervision128.json).
+The completed follow-up held the shared+joint architecture fixed and freshly trained 2-step/4-step models under all-readout/terminal-only supervision, at seeds 17/29/43. It retained the same 128/159 Case cohorts and the fixed 50-epoch schedule. See [the locked experiment plan](docs/CPU_DEPTH_SUPERVISION_PLAN.md), [executed configuration](configs/cpu_depth_supervision128.json), and [results and interpretation](docs/CPU_DEPTH_SUPERVISION_RESULTS.md).
 
 Terminal supervision uses the identical classification and mask loss only on the final readout, without dividing by configured depth; gradients still traverse the full recurrence. Every-step supervision averages losses over configured readouts. All four settings have identical trainable parameter counts and paired initial weights. Equal optimizer updates and Case exposure allow the deeper model extra compute; this is not a compute-matched experiment.
 
@@ -173,6 +173,16 @@ python -m loop_ultrasound.analyze_depth_supervision \
 ```
 
 The primary outcome compares separately fitted 2-step/4-step **endpoints** within each supervision mode. Within-model intermediate changes are secondary; terminal-only intermediate readouts were not directly supervised. This follow-up uses an already observed development cohort, so it is exploratory. Both classification and mask supervision locations change together; their individual contributions are not isolated.
+
+Terminal-only supervision gave positive 2-to-4-step Brier benefits in all three seeds (mean benefit 0.00928), while every-step supervision gave mixed directions (mean benefit -0.00189). Both paired Case intervals include zero. The supervision interaction also varies in direction across seeds; this does not identify a causal mechanism or establish clinical utility. The earlier negative within-model intermediate change reproduced exactly, but that comparison differs from training a short model separately.
+
+All twelve aggregate summaries, paired analysis, execution checks and PNG/SVG figures are in [reports/depth_supervision128](reports/depth_supervision128/). Regenerate the figures from these public records into a fresh output directory:
+
+```bash
+python -m loop_ultrasound.plot_depth_supervision \
+  --report-dir reports/depth_supervision128 \
+  --output-dir outputs/depth-supervision-figures
+```
 
 ## Data and code attribution
 

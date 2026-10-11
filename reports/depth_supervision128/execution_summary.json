@@ -1,0 +1,95 @@
+{
+  "status": "completed_cpu_depth_supervision_followup",
+  "report_date": "2026-10-11",
+  "report_timezone": "America/Los_Angeles",
+  "code_commit": "54ad85934f8dc10dc10c85cec574aff0007f85cf",
+  "training_source_sha256": "c3a1d28753504f5751d97db125c7a6515ae2db025d68ae15f72b5f1e085dc317",
+  "protocol_sha256": "bb9def445cd113de025c5e826cbc423e86f883f6e16de7ae2244013f3df3a688",
+  "runs_completed": 12,
+  "training_seeds": [
+    17,
+    29,
+    43
+  ],
+  "epochs_per_run": 50,
+  "optimizer_updates_per_run": 3200,
+  "optimizer_updates_total": 38400,
+  "device": "cpu",
+  "concurrent_processes": 2,
+  "torch_threads_per_process": 2,
+  "worker_recorded_elapsed_seconds": [
+    1348.3940019590082,
+    880.7608648329624
+  ],
+  "summed_training_loop_seconds": 2126.9630081250216,
+  "timing_scope": "Recorded training and worker timers exclude earlier data preparation and feature encoding; concurrency/evaluation/readout costs differ, so not an architecture speed benchmark or a measured total end-to-end wall time.",
+  "warm_starts": false,
+  "frozen_feature_cache_reused": true,
+  "augment": false,
+  "trainable_parameters": 714530,
+  "frozen_encoder_parameters": 5717416,
+  "train_cases": 128,
+  "train_images": 227,
+  "tune_cases": 159,
+  "tune_images": 281,
+  "paired_initialization": {
+    "identical_within_each_seed": true,
+    "by_seed": [
+      {
+        "seed": 17,
+        "initialization_sha256": "32422619b14bca9f4fd93650c6f5c047c91e2ef28548f425d6f48ac4d880c1f2"
+      },
+      {
+        "seed": 29,
+        "initialization_sha256": "6db8a3459a6235c51053b6cdb66fecb1a4b47a510974c76e0c5e857fa55b012b"
+      },
+      {
+        "seed": 43,
+        "initialization_sha256": "c7e062c100f640dca629e42735a7dd440c241dbc7f4962ebbf0c0df66f485c83"
+      }
+    ]
+  },
+  "alignment_checks": {
+    "exactly_twelve_expected_depth_supervision_seed_runs": true,
+    "separately_fitted_endpoints": true,
+    "same_training_case_view_label_sets_all_runs": true,
+    "same_development_case_view_label_sets_all_runs_and_steps": true,
+    "matching_config_except_depth_supervision_seed": true,
+    "matching_locked_source_digests_and_cohort": true,
+    "explicit_train_tune_only_record_provenance": true,
+    "no_training_development_case_or_image_overlap": true,
+    "fixed_50_epochs_and_completed_updates": true,
+    "summary_metrics_match_prediction_traces": true,
+    "paired_initial_parameters_within_seed": true
+  },
+  "current_source_matches_locked_training": true,
+  "public_protocol_byte_identical": true,
+  "deterministic_replay_checks": [
+    {
+      "seed": 17,
+      "exact_predictions_and_history": true,
+      "independent_reviewer_exact_parameter_tensors": true,
+      "independent_replication": false
+    },
+    {
+      "seed": 29,
+      "exact_predictions_and_history": true,
+      "independent_reviewer_exact_parameter_tensors": true,
+      "independent_replication": false
+    },
+    {
+      "seed": 43,
+      "exact_predictions_and_history": true,
+      "independent_reviewer_exact_parameter_tensors": true,
+      "independent_replication": false
+    }
+  ],
+  "independent_review": "Read-only recomputation of prediction metrics, all cohorts, full histories, loss readout metadata and prior parameter replay passed; no scientific execution blocker.",
+  "figure_visual_review": "Both real endpoint and learning-curve PNGs inspected; no clipping, readable legends and scope labels.",
+  "primary_inference": "Terminal depth benefit is positive for three fitted seeds but its conditional Case interval crosses zero; all-mode benefit and interaction have mixed seed directions. Exploratory signal only.",
+  "clinical_validation": false,
+  "patient_mapping": "unverified_Case_grouped_only",
+  "calibration_and_test_predictions": false,
+  "mechanism_identified": false,
+  "scope": "Previously observed tune cohort; fixed final epoch, frozen encoder, no augmentation, equal optimizer updates and exposures but unequal depth computation."
+}

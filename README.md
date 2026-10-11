@@ -222,6 +222,42 @@ python -m loop_ultrasound.plot_seed_replication \
   --output-dir outputs/seed-replication-figures
 ```
 
+## CPU Case expansion: nested 128/256 Cases at fixed optimizer updates
+
+The next terminal-only experiment trains fresh 256-Case models at depths 2/4 and seeds 17/29/43, matched to the original six 128-Case terminal fits. The 256-Case cohort contains every earlier Case and view. Both sizes finish 3,200 updates: 256 Cases use 25 epochs, while the reference 128 Cases used 50 epochs. This trades repeated Case exposure for more distinct training evidence; it is not a pure data-size causal contrast or an equal-FLOPs depth comparison. See [the locked plan](docs/CPU_CASE_EXPANSION_PLAN.md) and [configuration](configs/cpu_case_expansion256.json).
+
+```bash
+python -m loop_ultrasound.case_expansion --prepare-only \
+  --reference-protocol outputs/cpu-depth-supervision128/protocol.json --threads 2
+python -m loop_ultrasound.case_expansion \
+  --reference-protocol outputs/cpu-depth-supervision128/protocol.json --threads 2
+```
+
+Preparation verifies the nested cohort, builds the expanded frozen-feature cache and refits the same fixed train-only constant/logistic controls. Finish it before training. Two disjoint workers can use `--workers 2 --worker-index 0` and `1`, each with two CPU threads. Same-size depth pairs share initial parameters and Case/view sampling; initial parameters also match across sizes, but batch/view sequences differ across sizes. Calibration and test remain unused.
+
+After six fits complete:
+
+```bash
+python -m loop_ultrasound.analyze_case_expansion \
+  --protocol outputs/cpu-case-expansion256/protocol.json \
+  --run-dirs outputs/cpu-case-expansion256/SJ-depth*-terminal-seed* \
+  --reference-protocol outputs/cpu-depth-supervision128/protocol.json \
+  --reference-run-dirs outputs/cpu-depth-supervision128/SJ-depth*-terminal-seed* \
+  --baseline-dir outputs/cpu-case-expansion256/baselines \
+  --reference-baseline-dir outputs/cpu-expanded128/baselines \
+  --output outputs/cpu-case-expansion256/case_expansion_analysis.json
+```
+
+The primary contrast is `G256 = Brier_depth2 - Brier_depth4`; the paired data-size contrast is `G256 - G128`. There is no newly invented success gate or automatic larger/GPU run. Learning curves match optimizer updates 640/1280/1920/2560/3200, corresponding to new epochs 5/10/15/20/25 and old epochs 10/20/30/40/50. Aggregate-only figure regeneration:
+
+```bash
+python -m loop_ultrasound.plot_case_expansion \
+  --report-dir reports/case_expansion256 \
+  --reference-report-dir reports/depth_supervision128 \
+  --protocol configs/cpu_case_expansion256.json \
+  --output-dir outputs/case-expansion-figures
+```
+
 ## Data and code attribution
 
 BUS-BRA is described in [the dataset publication](https://pubmed.ncbi.nlm.nih.gov/37937827/) and distributed under CC-BY-4.0 on Zenodo. Download it from the official source; it is not bundled here. Follow the authors' citation requirements when reporting experiments. The encoder's upstream license applies to its weights. This repository's original code is MIT; the authors' MATLAB training implementation was not copied. Do not upload `data/`, `outputs/`, weights or individual prediction files to this public repository.

@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "command": "PYTHONPATH=src .venv/bin/python -m pytest -q",
+  "tests_passed": 333,
+  "subtests_passed": 41,
+  "elapsed_seconds": 4.81,
+  "execution_date": "2026-10-11",
+  "scope": "All prior checks plus nested cohort and source/initializer protection, 25/50 epoch fixed-update alignment, strict six-plus-six paired analysis and size-specific train-only baseline validation."
+}

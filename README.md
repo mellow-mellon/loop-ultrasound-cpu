@@ -186,9 +186,11 @@ python -m loop_ultrasound.plot_depth_supervision \
 
 ## CPU replication: five new training seeds
 
-The next terminal-only screen pairs separately trained depths 2/4 at five new seeds: 53, 71, 89, 107 and 131. It preserves the earlier 128/159 Case cohorts, core training code and fixed final epoch 50. See [the prespecified plan](docs/CPU_SEED_REPLICATION_PLAN.md) and [locked configuration](configs/cpu_seed_replication128.json).
+The completed terminal-only screen paired separately trained depths 2/4 at five new seeds: 53, 71, 89, 107 and 131. It preserved the earlier 128/159 Case cohorts, core training code and fixed final epoch 50. See [the prespecified plan](docs/CPU_SEED_REPLICATION_PLAN.md), [locked configuration](configs/cpu_seed_replication128.json), and [results and next-experiment decision](docs/CPU_SEED_REPLICATION_RESULTS.md).
 
 The primary resource screen uses only the five new seed pairs: at least four positive Brier benefits, positive mean benefit after removing any one seed, and no worsening of mean NLL. This is a screening rule for proposing a separate data-expansion experiment, not significance, clinical validation, a GPU gate, or automatic authorization to run that experiment. Old seeds may appear only in a secondary combined summary.
+
+All three conditions passed. Five out of five new pairs improved Brier, AUROC and NLL; mean Brier benefit was 0.04618 with a fitted-model-conditional Case interval [0.01682, 0.07611]. Removing any one seed left positive mean benefit (minimum 0.03695). This supports reviewing a separate 256-training-Case CPU experiment. New two-step endpoints showed schedule sensitivity; Dice did not improve on average, and sensitivity at threshold 0.5 decreased while specificity increased. These results do not establish clinical utility or an internal correction mechanism. All ten aggregate summaries, strict paired analysis, execution checks and scientific figures are in [reports/seed_replication128](reports/seed_replication128/).
 
 ```bash
 python -m loop_ultrasound.seed_replication --prepare-only \

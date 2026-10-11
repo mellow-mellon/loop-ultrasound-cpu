@@ -1,0 +1,111 @@
+{
+  "status": "completed_cpu_seed_replication",
+  "report_date": "2026-10-11",
+  "report_timezone": "America/Los_Angeles",
+  "code_commit": "3415852fc666bd30e2614bf00a2452c5bc6a5a54",
+  "protocol_sha256": "1c0b2c86b0581855b8ec0163308a9ab3809058d7cd879c4c95b6aaa05780b2e3",
+  "training_source_sha256": "c3a1d28753504f5751d97db125c7a6515ae2db025d68ae15f72b5f1e085dc317",
+  "launcher_source_sha256": "9207aaa40bd6411ae029508909b4f3923ececd9590d10d0255673a4e0d46d55d",
+  "analysis_module_sha256": "1eeae564dbc509184727d071ec26b1f5e47ba0e6725eeb215a9abad9b166844b",
+  "runs_completed": 10,
+  "new_training_seeds": [
+    53,
+    71,
+    89,
+    107,
+    131
+  ],
+  "reference_seeds": [
+    17,
+    29,
+    43
+  ],
+  "optimizer_updates_per_run": 3200,
+  "optimizer_updates_total": 32000,
+  "epochs_per_run": 50,
+  "device": "cpu",
+  "concurrent_workers": 2,
+  "torch_threads_per_worker": 2,
+  "worker_recorded_elapsed_seconds": [
+    639.3598595410003,
+    814.4953338330379
+  ],
+  "summed_training_loop_seconds": 1364.899242125044,
+  "timing_scope": "Recorded worker/training timers exclude earlier data preparation and encoding; concurrency and evaluation costs differ, so not an architecture speed benchmark.",
+  "both_workers_normal_exit": true,
+  "trainable_parameters": 714530,
+  "frozen_encoder_parameters": 5717416,
+  "current_sources_match_locked_reference": true,
+  "public_protocol_byte_identical": true,
+  "cohort_and_prediction_validation": {
+    "exactly_ten_fresh_terminal_depth_seed_fits": true,
+    "every_configured_readout_present": true,
+    "identical_case_view_label_sets_all_fits_and_steps": true,
+    "explicit_train_tune_only_provenance": true,
+    "no_training_development_case_or_image_overlap": true,
+    "locked_source_init_and_cohort_digests": true,
+    "fixed_50_epochs_and_all_optimizer_updates": true,
+    "declared_endpoint_and_final_history_match_traces": true,
+    "reference_models_validated_separately": true
+  },
+  "paired_initialization": {
+    "identical_within_each_new_seed": true,
+    "by_seed": [
+      {
+        "seed": 53,
+        "initialization_sha256": "d510b03d08e8c3377edc7edb730b8199e6fb7f630de7b2a611948d21f60b335f"
+      },
+      {
+        "seed": 71,
+        "initialization_sha256": "46c2853a03d737e05a9ae49898c99ac88b5b047ac23162687c484d6bff2a3cae"
+      },
+      {
+        "seed": 89,
+        "initialization_sha256": "44cf4a89f06f7d71a234b876cde94eb3ace0792aca818e422e19b873a13f0802"
+      },
+      {
+        "seed": 107,
+        "initialization_sha256": "e0fe9bdc604437aa910ea1b1c1b199bcc8db25241f6b67c2c4e0bc7bf00490ee"
+      },
+      {
+        "seed": 131,
+        "initialization_sha256": "52057548b91905051d5dbb7c6ee52c56d4aae79e53d3597001fe1b7782b05581"
+      }
+    ]
+  },
+  "new_seed_gate": {
+    "conditions": {
+      "positive_gain_at_least_four_of_five": {
+        "passed": true,
+        "observed_positive_seeds": 5,
+        "minimum": 4
+      },
+      "all_five_leave_one_seed_out_means_positive": {
+        "passed": true,
+        "minimum_observed_mean": 0.036949672681234495,
+        "strictly_greater_than": 0.0
+      },
+      "mean_nll_not_worse": {
+        "passed": true,
+        "observed_nll4_minus_nll2": -0.30167606187366003,
+        "maximum": 0.0
+      }
+    },
+    "passed": true,
+    "applies_only_to_new_five_seeds": true,
+    "recommendation": "eligible_for_scientific_review_of_next_experiment",
+    "automatically_starts_experiments": false,
+    "is_statistical_significance_test": false,
+    "is_clinical_validation": false,
+    "interpretation": "Prespecified CPU engineering resource screen only; passing does not establish clinical utility or independently authorize expansion."
+  },
+  "primary_inference": "Five new seed pairs improve Brier, AUROC and NLL; locked engineering rule supports review of a separate 256-Case CPU experiment.",
+  "independent_review": "All ten raw prediction/endpoints, source/init/parameter/history audits and independently recomputed Case-bootstrap interval/gate passed.",
+  "figure_visual_review": "Actual paired-depth-benefit and learning-curve PNGs inspected: readable labels/legends, no clipping, explicit new-only scope and SD limitations.",
+  "clinical_validation": false,
+  "mechanism_identified": false,
+  "patient_mapping": "unverified_Case_grouped_only",
+  "calibration_and_test_predictions": false,
+  "case_expansion_started": false,
+  "limits": "Observed fixed tune Cases, conditional fitted-model intervals, unequal depth compute, frozen/noaug, endpoint instability and threshold sensitivity tradeoffs remain."
+}

@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "command": "PYTHONPATH=src .venv/bin/python -m pytest -q",
+  "tests_passed": 463,
+  "subtests_passed": 41,
+  "elapsed_seconds": 10.86,
+  "execution_date": "2026-10-11",
+  "scope": "All prior checks plus safe full-state disk fork/RNG/optimizer restoration, fixed-fold temperature complementary-label/no-overwrite/identity controls and strict twenty-branch paired learning-rate provenance/replay analysis."
+}

@@ -298,6 +298,40 @@ python -m loop_ultrasound.plot_case_expansion \
 
 The figures show only the five new seeds: endpoint means, optimizer-update learning curves, and each paired seed's depth benefit, interaction and direct data-size benefit. Conditional Case intervals and leave-one-seed-out means describe the locked fitted models and do not establish clinical utility.
 
+## CPU probability diagnostic and tail learning-rate control
+
+The next two prespecified checks keep the previously observed tune cohort and calibration/test predictions sealed. See [the plan](docs/CPU_PROBABILITY_AND_TAIL_PLAN.md), [temperature configuration](configs/cpu_temperature_diagnostic.json), and [tail-LR configuration](configs/cpu_tail_lr256.json).
+
+The temperature diagnostic cross-fits one positive Case-level temperature on five common stratified tune folds, separately for each fixed depth/seed model. The primary models are the five 256-Case seed pairs; matched 128-Case models are secondary. Original probabilities remain unchanged, and out-of-fold predictions stay local. Fold-specific temperatures can change pooled AUROC, so this is a probability-scale diagnostic rather than representation learning or untouched validation.
+
+```bash
+python -m loop_ultrasound.temperature_diagnostic --prepare \
+  --run-dirs outputs/cpu-case-expansion256-replication/SJ-depth*-terminal-seed* \
+  --source-protocol outputs/cpu-case-expansion256-replication/protocol.json \
+  --reference-run-dirs outputs/cpu-seed-replication128/SJ-depth*-terminal-seed* \
+  --reference-protocol outputs/cpu-seed-replication128/protocol.json
+python -m loop_ultrasound.temperature_diagnostic --execute \
+  --run-dirs outputs/cpu-case-expansion256-replication/SJ-depth*-terminal-seed* \
+  --source-protocol outputs/cpu-case-expansion256-replication/protocol.json \
+  --reference-run-dirs outputs/cpu-seed-replication128/SJ-depth*-terminal-seed* \
+  --reference-protocol outputs/cpu-seed-replication128/protocol.json
+```
+
+The training control starts ten fresh seed/depth prefixes at learning rate 3e-4 through update 2,560. Complete model, AdamW, RNG and sampler/loader states are restored into constant 3e-4 and fixed 3e-5 tails through update 3,200. Both branches share identical tail Case/view sequences. Twenty endpoint trajectories use 38,400 actual new updates because their prefixes are shared. Each constant endpoint must exactly replay its earlier fitted parameters, predictions and histories; these replays are controls, not additional independent seeds.
+
+```bash
+python -m loop_ultrasound.tail_lr --prepare-only --threads 2
+python -m loop_ultrasound.tail_lr --threads 2
+python -m loop_ultrasound.analyze_tail_lr \
+  --protocol outputs/cpu-tail-lr256/protocol.json \
+  --run-dirs outputs/cpu-tail-lr256/SJ-depth*-seed* \
+  --reference-protocol outputs/cpu-case-expansion256-replication/protocol.json \
+  --reference-run-dirs outputs/cpu-case-expansion256-replication/SJ-depth*-terminal-seed* \
+  --output outputs/cpu-tail-lr256/tail_lr_analysis.json
+```
+
+Two disjoint training workers can use `--workers 2 --worker-index 0` and `1`, each with two CPU threads. Completed/claimed trajectories are never overwritten. The primary contrast is `H = G_low_tail - G_constant`, with `G = Brier_depth2 - Brier_depth4`. Report H together with absolute low-tail G, NLL, AUROC, Dice and prefix-to-endpoint changes. Changing AdamW learning rate changes both gradient and decoupled weight-decay step magnitudes. There is no learning-rate sweep, best-epoch selection or automatic next stage.
+
 ## Data and code attribution
 
 BUS-BRA is described in [the dataset publication](https://pubmed.ncbi.nlm.nih.gov/37937827/) and distributed under CC-BY-4.0 on Zenodo. Download it from the official source; it is not bundled here. Follow the authors' citation requirements when reporting experiments. The encoder's upstream license applies to its weights. This repository's original code is MIT; the authors' MATLAB training implementation was not copied. Do not upload `data/`, `outputs/`, weights or individual prediction files to this public repository.

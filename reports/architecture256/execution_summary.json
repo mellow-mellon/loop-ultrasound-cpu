@@ -1,0 +1,283 @@
+{
+  "status": "completed_independently_audited_and_qualitatively_reviewed",
+  "execution_date": "2026-10-11",
+  "device": "cpu",
+  "protocol_locked_before_new_training_commit": "9a5cb75066f876db89a380e322c1fecc3ecefc45",
+  "analysis_implementation_commit": "142ed178988909f7393513c6fde8a6fc03d1ccc5",
+  "protocol_sha256": "ad2e84e0a0a6f91c1c198112cc0543ad3c6282cf0b058923b3a9721c3639f824",
+  "sources": {
+    "encoder_sha256": "d2169b631631699b652d392db7647472cf194a9d01fe402ff11470c4dd374eb0",
+    "manifest_sha256": "47a065ec48faca9fb37c17f841a1c2414a6bd902e55f3c93a90dba3df3eaf0ac",
+    "training_source_sha256": "c3a1d28753504f5751d97db125c7a6515ae2db025d68ae15f72b5f1e085dc317",
+    "launcher_source_sha256": "27a682bdc3fe0c7941e049e4b7c9a97ab210c7bdf0beba2543d4c1efd834165d",
+    "helper_source_sha256": "df36dbdae561ea0d7b842437000d95e1fddaed496c977cc7685ea18e210016e0",
+    "shared_protocol_sha256": "f479e554852ff97dc48c7aec28657df1bd5629f8e2812858345482a564bdb636",
+    "shared_reference_protocol_sha256": "e858d379e795d1af2c5e5ff2dc1e1c0d93f8a2a86ba5f16349ad71837af65994",
+    "protocol_sha256": "ad2e84e0a0a6f91c1c198112cc0543ad3c6282cf0b058923b3a9721c3639f824"
+  },
+  "installed_module_source_checks": {
+    "architecture_comparison": {
+      "source_sha256": "27a682bdc3fe0c7941e049e4b7c9a97ab210c7bdf0beba2543d4c1efd834165d",
+      "installed_source_matches": true
+    },
+    "analyze_architecture": {
+      "source_sha256": "521114773e5e479844f05d5f1782670b70ae0a08f6069b3c290036413f7713c1",
+      "installed_source_matches": true
+    },
+    "plot_architecture": {
+      "source_sha256": "b3312d512590118a765a79f03e36c128367d6603319385cecf58651c59a8198b",
+      "installed_source_matches": true
+    }
+  },
+  "training_budget": {
+    "reused_shared_endpoints": 20,
+    "new_untied_endpoints": 20,
+    "new_untied_prefixes": 10,
+    "conceptual_updates_per_endpoint": 3200,
+    "total_actual_new_updates": 38400,
+    "same_width_untied_models_use_more_parameters": true,
+    "optimizer_update_matching_is_not_FLOP_matching": true
+  },
+  "training_workers": [
+    {
+      "worker_index": 0,
+      "trained_depth": 2,
+      "new_prefixes": 5,
+      "new_endpoints": 10,
+      "actual_new_updates": 19200,
+      "elapsed_seconds": 751.6756597920321,
+      "process_exit_code": 0
+    },
+    {
+      "worker_index": 1,
+      "trained_depth": 4,
+      "new_prefixes": 5,
+      "new_endpoints": 10,
+      "actual_new_updates": 19200,
+      "elapsed_seconds": 982.4057040420012,
+      "process_exit_code": 0
+    }
+  ],
+  "timing_scope": "Workers ran concurrently; each recorded interval includes its training, evaluation and file handling. Intervals are not summed as parallel wall time or used as inference speed comparisons.",
+  "cohort": {
+    "train": {
+      "benign": 174,
+      "cases": 256,
+      "fingerprint": "cc06a11f99471c4723cb3ee867a34b758e470664ea942ae747d2baf15f447773",
+      "images": 445,
+      "malignant": 82
+    },
+    "tune": {
+      "benign": 108,
+      "cases": 159,
+      "fingerprint": "b230c7456222a5b7757d2309f31c604cd9a57cb870d0b2e58120686e6abce8a8",
+      "images": 281,
+      "malignant": 51
+    },
+    "patient_mapping": "unverified_Case_grouped_only"
+  },
+  "prespecified_architectures_and_policies": {
+    "arms": [
+      "SJ",
+      "UJ"
+    ],
+    "depths": [
+      2,
+      4
+    ],
+    "policies": [
+      "constant",
+      "low_tail"
+    ],
+    "training_seeds": [
+      53,
+      71,
+      89,
+      107,
+      131
+    ],
+    "trainable_and_refinement_parameters": {
+      "SJ2": {
+        "block_applications_at_full_depth": 2,
+        "core": 444864,
+        "core_and_classification": 470081,
+        "independent_blocks": 1,
+        "mask_head": 244449,
+        "total": 714530,
+        "trainable": 714530
+      },
+      "SJ4": {
+        "block_applications_at_full_depth": 4,
+        "core": 444864,
+        "core_and_classification": 470081,
+        "independent_blocks": 1,
+        "mask_head": 244449,
+        "total": 714530,
+        "trainable": 714530
+      },
+      "UJ2": {
+        "block_applications_at_full_depth": 2,
+        "core": 889728,
+        "core_and_classification": 914945,
+        "independent_blocks": 2,
+        "mask_head": 244449,
+        "total": 1159394,
+        "trainable": 1159394
+      },
+      "UJ4": {
+        "block_applications_at_full_depth": 4,
+        "core": 1779456,
+        "core_and_classification": 1804673,
+        "independent_blocks": 4,
+        "mask_head": 244449,
+        "total": 2049122,
+        "trainable": 2049122
+      }
+    },
+    "frozen_encoder_parameters": 5717416
+  },
+  "core_training_source_unchanged": true,
+  "strict_analysis_alignment_checks": {
+    "forty_exact_architecture_depth_policy_seed_endpoints": true,
+    "shared_control_exact_replay_revalidated": true,
+    "reused_shared_branch_and_prefix_artifact_bindings_verified": true,
+    "full_untied_policy_prefix_state_restoration_certified": true,
+    "common_initial_block_head_values_and_distinct_untied_storage_certified": true,
+    "paired_sampling_all_architectures_depths_policies": true,
+    "exact_case_view_label_alignment_all_readouts": true,
+    "no_train_tune_case_or_image_overlap": true,
+    "no_calibration_test_or_temperature_fit": true
+  },
+  "public_export": {
+    "endpoint_summaries": 40,
+    "fresh_untied_prefix_summaries": 10,
+    "summaries_equal_local_records": true,
+    "protocol_equals_pre_result_config": true,
+    "aggregate_analysis_equals_local_record": true,
+    "individual_predictions_images_identities_states_and_weights_exported": false
+  },
+  "tests": {
+    "full_suite_before_final_plot_layout_adjustment": {
+      "tests_passed": 547,
+      "subtests_passed": 41,
+      "elapsed_seconds": 16.29,
+      "command": "PYTHONPATH=src .venv/bin/python -m pytest -q"
+    },
+    "post_layout_plot_tests": {
+      "tests_passed": 23,
+      "elapsed_seconds": 0.34,
+      "command": "PYTHONPATH=src .venv/bin/python -m pytest -q tests/test_plot_architecture.py"
+    }
+  },
+  "independent_audits": {
+    "root_raw_metrics": {
+      "status": "independent_raw_metrics_and_paired_effect_audit_passed",
+      "raw_development_endpoints_recomputed": 40,
+      "independent_brier_error_probability_effect_bootstraps": 110,
+      "per_endpoint_metrics": [
+        "Brier",
+        "NLL",
+        "AUROC",
+        "Dice",
+        "sensitivity",
+        "specificity",
+        "TP",
+        "TN",
+        "FP",
+        "FN"
+      ],
+      "classwise_metrics": [
+        "error_count",
+        "high_confidence_error_count",
+        "Brier",
+        "NLL"
+      ],
+      "directions": [
+        "UJ_to_SJ",
+        "trained_depth2_to4",
+        "constant_to_low_tail"
+      ],
+      "case_denominators": {
+        "all": 159,
+        "malignant": 51,
+        "benign": 108
+      },
+      "bootstrap_draws": 2000,
+      "bootstrap_seed": 17,
+      "scope": "Fixed fitted networks and observed Case groups; no patient or training-seed population inference."
+    },
+    "second_reviewer": {
+      "status": "passed_no_blockers",
+      "full_prefix_states_loaded_and_verified": 20,
+      "new_untied_prefix_states": 10,
+      "bound_shared_prefix_states": 10,
+      "endpoint_raw_metrics_and_sources_verified": 40,
+      "overall_and_truth_specific_effect_bootstraps_recomputed": 154,
+      "bootstrap_draws": 2000,
+      "bootstrap_seed": 17,
+      "also_verified": [
+        "manual_sampling_traces",
+        "paired_initialization_and_independent_storage_certificates",
+        "ten_old_shared_constant_tensor_prediction_objective_replays",
+        "unchanged_pinned_shared_branch_and_prefix_bytes",
+        "case_concentration_and_leave_one_seed_out_sensitivity"
+      ]
+    }
+  },
+  "figures": {
+    "png_count": 3,
+    "svg_count": 3,
+    "actual_output_visual_inspection": "passed_by_root_and_figure_author",
+    "pathology_error_policy_panels_share_axes_within_rows": true,
+    "svg_whitespace_normalization_preserved_xml_and_geometry": true
+  },
+  "lesion_phase_review": {
+    "decision": "defer_actual_lesion_intervention",
+    "automatic_numerical_gate_applied": false,
+    "basis": [
+      "low_tail_shared4_raw_Brier_benefit_positive_at_all_five_seeds_but_conditional_case_interval_crosses_zero",
+      "low_tail_fixed_half_threshold_error_counts_nearly_equal",
+      "constant_policy_has_strong_opposing_truth_class_error_tradeoff_not_retained_under_low_tail",
+      "both_architectures_depth_benefits_depend_on_policy",
+      "interaction_and_positive_gain_case_concentration_limit_mechanism_claims"
+    ],
+    "interpretation": "Preserve a recipe-dependent probability/ranking candidate; score/operating bias is plausible but has not been established as the entire cause. No distinct lesion-evidence-use mechanism identified."
+  },
+  "scope": {
+    "lesion_intervention_executed": false,
+    "new_temperature_fits": false,
+    "threshold_search": false,
+    "calibration_or_test_predictions": false,
+    "additional_cases": false,
+    "gpu_training": false,
+    "clinical_validation": false,
+    "mechanism_identified": false
+  },
+  "summary_links": {
+    "results": "docs/CPU_ARCHITECTURE256_RESULTS.md",
+    "analysis": "reports/architecture256/architecture_analysis.json",
+    "diagnostics": "reports/architecture256/training_diagnostics.json"
+  },
+  "final_report_scientific_review": {
+    "status": "passed_no_blockers",
+    "scope": [
+      "rounded_endpoint_and_seed_spread_metrics",
+      "A_G_Theta_and_conditional_intervals",
+      "pathology_counts_transitions_and_concentration",
+      "truthful_test_chronology_and_prefix_counts",
+      "no_unproved_probability_bias_or_clinical_mechanism_claim",
+      "lesion_defer_decision_based_on_both_policies_and_truth_groups",
+      "report_relative_links_and_execution_source_fields"
+    ]
+  },
+  "public_export_audit": {
+    "status": "passed",
+    "public_json_files_scanned": 57,
+    "endpoint_and_prefix_exports_equal_local": 50,
+    "protocol_bytes_equal": true,
+    "analysis_bytes_equal": true,
+    "private_data_tracked": false,
+    "result_relative_links_resolved": 9,
+    "sensitive_identity_probability_keys_or_host_paths_detected": false
+  }
+}

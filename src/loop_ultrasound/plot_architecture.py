@@ -275,6 +275,7 @@ def _render_figures(runs, seed_rows):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    from matplotlib.ticker import MaxNLocator
     plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10, "svg.fonttype": "none", "savefig.facecolor": "white"})
     endpoint, axes = plt.subplots(1, 3, figsize=(16, 7.5))
     x = np.arange(4)
@@ -326,6 +327,18 @@ def _render_figures(runs, seed_rows):
             axis.set_title(POLICY_LABELS[policy] + (" | threshold 0.5" if row == 0 else " | high-confidence errors"), fontsize=10)
             axis.set(xlabel="False positives (benign Cases)" if row == 0 else "Confident false positives (benign p >= 0.95)",
                      ylabel="False negatives\n(malignant Cases)" if row == 0 else "Confident false negatives\n(malignant p <= 0.05)")
+    # Policies must use the same scales for a fair visual comparison. Include
+    # zero counts and every plotted point/SD bar, including any negative SD
+    # extent; SD describes fitted-seed spread rather than feasible counts.
+    for row in range(2):
+        x_limits = (min(0., *(axis.get_xlim()[0] for axis in axes[row])),
+                    max(axis.get_xlim()[1] for axis in axes[row]))
+        y_limits = (min(0., *(axis.get_ylim()[0] for axis in axes[row])),
+                    max(axis.get_ylim()[1] for axis in axes[row]))
+        for axis in axes[row]:
+            axis.set_xlim(x_limits); axis.set_ylim(y_limits)
+            axis.xaxis.set_major_locator(MaxNLocator(integer=True))
+            axis.yaxis.set_major_locator(MaxNLocator(integer=True))
     _decorate(errors, list(axes.flat), "Pathology error tradeoffs | lower-left means fewer errors",
                "Small markers: five fitted seeds; large markers: means; horizontal/vertical bars: sample SD | inclusive probability cutoffs",
                rows=2)

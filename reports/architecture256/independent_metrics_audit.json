@@ -1,0 +1,36 @@
+{
+  "status": "independent_raw_metrics_and_paired_effect_audit_passed",
+  "raw_development_endpoints_recomputed": 40,
+  "independent_brier_error_probability_effect_bootstraps": 110,
+  "per_endpoint_metrics": [
+    "Brier",
+    "NLL",
+    "AUROC",
+    "Dice",
+    "sensitivity",
+    "specificity",
+    "TP",
+    "TN",
+    "FP",
+    "FN"
+  ],
+  "classwise_metrics": [
+    "error_count",
+    "high_confidence_error_count",
+    "Brier",
+    "NLL"
+  ],
+  "directions": [
+    "UJ_to_SJ",
+    "trained_depth2_to4",
+    "constant_to_low_tail"
+  ],
+  "case_denominators": {
+    "all": 159,
+    "malignant": 51,
+    "benign": 108
+  },
+  "bootstrap_draws": 2000,
+  "bootstrap_seed": 17,
+  "scope": "Fixed fitted networks and observed Case groups; no patient or training-seed population inference."
+}

@@ -336,7 +336,7 @@ Two disjoint training workers can use `--workers 2 --worker-index 0` and `1`, ea
 
 ## CPU exploratory sharing-by-depth architecture comparison
 
-The next locked comparison reuses the twenty validated shared endpoints and adds fresh ordinary/untied depth2 and depth4 controls at the same terminal-only joint supervision,256 training/159 tune Cases and five seeds. Both fixed tail learning-rate policies apply symmetrically to both architectures. See [the plan](docs/CPU_ARCHITECTURE256_PLAN.md) and [locked protocol](configs/cpu_architecture256.json).
+The completed comparison reused twenty validated shared endpoints and added twenty fresh ordinary/untied depth2 and depth4 endpoints at the same terminal-only joint supervision, 256 training/159 tune Cases and five paired seeds. Both fixed tail learning-rate policies applied symmetrically to both architectures. See [the plan](docs/CPU_ARCHITECTURE256_PLAN.md), [locked protocol](configs/cpu_architecture256.json), [completed results and lesion-phase decision](docs/CPU_ARCHITECTURE256_RESULTS.md), and [aggregate records/figures](reports/architecture256/).
 
 Each untied layer starts at the corresponding shared block values but owns independent parameter storage; readout/head initial values and Case-view sampling are paired. Ten fresh untied prefixes plus twenty tails require38,400 new updates. The full-state fork uses the same published training helper; core model/data/training sources are unchanged. Existing shared endpoints are bound references, not extra independent fits.
 
@@ -345,7 +345,7 @@ python -m loop_ultrasound.architecture_comparison --prepare-only --threads 2
 python -m loop_ultrasound.architecture_comparison --threads 2
 ```
 
-After all twenty ordinary endpoints complete, validate all forty models against raw Case records and the bound shared replay chain:
+The completed analysis validates all forty models against raw Case records and the bound shared replay chain:
 
 ```bash
 python -m loop_ultrasound.analyze_architecture \
@@ -363,7 +363,7 @@ python -m loop_ultrasound.plot_architecture \
   --output-dir outputs/architecture256-figures
 ```
 
-Two disjoint workers can use `--workers 2 --worker-index 0` and `1`, each with two CPU threads. Report same-depth sharing benefits (`Brier_UJ - Brier_SJ`), each architecture's trained-depth benefit, and their interaction separately for both policies. Malignant and benign errors and cross-model prediction changes use the fixed0.5 threshold plus inclusive high-confidence cutoffs0.05/0.95. This is a frozen-feature refiner comparison at matched width/depth, not matched parameters, fully tuned architectures, internal inference correction or independent clinical validation. This phase assesses whether a later lesion intervention is worthwhile; it does not execute one or open calibration/test data.
+Two disjoint workers can use `--workers 2 --worker-index 0` and `1`, each with two CPU threads. Report same-depth sharing benefits (`Brier_UJ - Brier_SJ`), each architecture's trained-depth benefit, and their interaction separately for both policies. Malignant and benign errors and cross-model prediction changes use the fixed0.5 threshold plus inclusive high-confidence cutoffs0.05/0.95. This is a frozen-feature refiner comparison at matched width/depth, not matched parameters, fully tuned architectures, internal inference correction or independent clinical validation. The completed review defers actual lesion intervention. With the lower tail LR, shared4 had a positive raw Brier advantage over untied4 at all five seeds (mean +0.00930; conditional Case interval [-0.00638, +0.02408]), while false negatives/positives were nearly unchanged. With constant LR, sharing strongly traded fewer benign false positives for more malignant false negatives. Depth gains in both architectures depended on the policy, and their interaction remains uncertain. These are exploratory recipe-dependent signals; no lesion intervention, new temperature fit, threshold search or calibration/test prediction was executed.
 
 ## Data and code attribution
 

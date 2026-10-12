@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "execution_date": "2026-10-11",
+  "command": "PYTHONPATH=src .venv/bin/python -m pytest -q",
+  "tests_passed": 547,
+  "subtests_passed": 41,
+  "elapsed_seconds": 16.29,
+  "scope": "All prior tests plus paired untied initial values/storage/RNG, exact forty-endpoint arm-aware artifact and raw-metric validation, pathology-specific paired effects/boundaries, concentration/seed sensitivity and aggregate-only scientific plot schema/refusal tests."
+}

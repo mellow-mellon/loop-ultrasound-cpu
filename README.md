@@ -345,6 +345,24 @@ python -m loop_ultrasound.architecture_comparison --prepare-only --threads 2
 python -m loop_ultrasound.architecture_comparison --threads 2
 ```
 
+After all twenty ordinary endpoints complete, validate all forty models against raw Case records and the bound shared replay chain:
+
+```bash
+python -m loop_ultrasound.analyze_architecture \
+  --protocol outputs/cpu-architecture256/protocol.json \
+  --run-dirs outputs/cpu-architecture256/UJ-depth*-seed* \
+  --shared-protocol outputs/cpu-tail-lr256/protocol.json \
+  --shared-run-dirs outputs/cpu-tail-lr256/SJ-depth*-seed* \
+  --shared-reference-protocol outputs/cpu-case-expansion256-replication/protocol.json \
+  --shared-reference-run-dirs outputs/cpu-case-expansion256-replication/SJ-depth*-terminal-seed* \
+  --output outputs/cpu-architecture256/architecture_analysis.json
+
+python -m loop_ultrasound.plot_architecture \
+  --report-dir reports/architecture256 \
+  --protocol configs/cpu_architecture256.json \
+  --output-dir outputs/architecture256-figures
+```
+
 Two disjoint workers can use `--workers 2 --worker-index 0` and `1`, each with two CPU threads. Report same-depth sharing benefits (`Brier_UJ - Brier_SJ`), each architecture's trained-depth benefit, and their interaction separately for both policies. Malignant and benign errors and cross-model prediction changes use the fixed0.5 threshold plus inclusive high-confidence cutoffs0.05/0.95. This is a frozen-feature refiner comparison at matched width/depth, not matched parameters, fully tuned architectures, internal inference correction or independent clinical validation. This phase assesses whether a later lesion intervention is worthwhile; it does not execute one or open calibration/test data.
 
 ## Data and code attribution

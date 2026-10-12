@@ -300,7 +300,9 @@ The figures show only the five new seeds: endpoint means, optimizer-update learn
 
 ## CPU probability diagnostic and tail learning-rate control
 
-The next two prespecified checks keep the previously observed tune cohort and calibration/test predictions sealed. See [the plan](docs/CPU_PROBABILITY_AND_TAIL_PLAN.md), [temperature configuration](configs/cpu_temperature_diagnostic.json), and [tail-LR configuration](configs/cpu_tail_lr256.json).
+The two completed prespecified checks use the previously observed tune cohort and keep calibration/test predictions sealed. See [the plan](docs/CPU_PROBABILITY_AND_TAIL_PLAN.md), [completed results](docs/CPU_PROBABILITY_AND_TAIL_RESULTS.md), [temperature configuration](configs/cpu_temperature_diagnostic.json), and [tail-LR configuration](configs/cpu_tail_lr256.json).
+
+Temperature cross-fitting reduced mean probability losses but left the 256-Case depth benefit near zero: OOF G=-0.00164, conditional Case interval [-0.01237, 0.00916]. The separate fixed tail-LR intervention produced H=+0.02725, interval [0.00979, 0.04596], positive at all five paired seeds; absolute low-tail G=+0.01749, interval [0.00171, 0.03376], positive at four of five. All ten constant branches exactly replayed earlier models. These are exploratory optimizer-policy and probability-scale findings on observed tune, without independent patient validation or a general recurrence claim. Aggregate-only summaries and figures are in [reports/temperature_diagnostic](reports/temperature_diagnostic/) and [reports/tail_lr256](reports/tail_lr256/).
 
 The temperature diagnostic cross-fits one positive Case-level temperature on five common stratified tune folds, separately for each fixed depth/seed model. The primary models are the five 256-Case seed pairs; matched 128-Case models are secondary. Original probabilities remain unchanged, and out-of-fold predictions stay local. Fold-specific temperatures can change pooled AUROC, so this is a probability-scale diagnostic rather than representation learning or untouched validation.
 

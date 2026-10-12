@@ -209,6 +209,28 @@ def test_runner_embedded_prefix_objective_histories_are_supported(experiment):
     assert _analyze(experiment)["alignment_checks"]["full_prefix_state_restoration_certified"] is True
 
 
+def test_enriched_new_diagnostics_replay_bare_old_objective_history(experiment):
+    """New histories add diagnostics absent from the original bare histories."""
+    def enrich(history, policy="constant"):
+        return [{**row, "mean_training_classification": row["mean_training_objective"]*.6,
+                 "mean_training_segmentation": row["mean_training_objective"]*.4,
+                 "core_preclip_norm_mean": .7, "core_clip_fraction": .1,
+                 "mask_preclip_norm_mean": .8, "mask_clip_fraction": .2,
+                 "learning_rate": RATES[policy] if row["epoch"] > 20 else .0003}
+                for row in history]
+    for prefix in experiment["root"].glob("prefix-*"):
+        history = enrich(json.loads((prefix/"history.json").read_text()))
+        _json_edit(prefix/"prefix_summary.json", lambda summary: summary.update(history=history))
+        (prefix/"history.json").unlink()
+    for branch in experiment["runs"]:
+        policy = json.loads((branch/"summary.json").read_text())["config"]["tail_policy"]
+        history = enrich(json.loads((branch/"history.json").read_text()), policy)
+        (branch/"history.json").write_text(json.dumps(history))
+    assert set(json.loads((experiment["reference_runs"][0]/"history.json").read_text())[0]) == {"epoch", "mean_training_objective"}
+    report = _analyze(experiment)
+    assert report["alignment_checks"]["constant_objective_and_development_histories_replay_reference"] is True
+
+
 def test_reference_checkpoint_bytes_are_pinned(experiment):
     (experiment["reference_runs"][0]/"checkpoint.pt").write_bytes(b"unbound replacement")
     with pytest.raises(ValueError, match="locked protocol bindings"):

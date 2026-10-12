@@ -162,6 +162,12 @@ def _objective_history(path, epochs):
     return _objective_values(history, epochs)
 
 
+def _reference_objective_projection(history):
+    """Compare the fields recorded by both the old and enriched new trainer."""
+    return [{"epoch": row["epoch"], "mean_training_objective": row["mean_training_objective"]}
+            for row in history]
+
+
 def _history(summary, metrics, *, final_epoch):
     history = summary.get("development_history")
     if (not isinstance(history, list) or not all(isinstance(row, dict) for row in history)
@@ -337,8 +343,8 @@ def analyze_tail_lr(run_dirs, *, protocol_path, reference_run_dirs, reference_pr
             for filename in ("training_predictions.csv", "development_predictions.csv"):
                 if _file_hash(branch_dirs[seed, depth, "constant"]/filename) != _file_hash(refdir/filename):
                     raise ValueError("Constant replay prediction CSV bytes differ from the bound original fit.")
-            if (_objective_history(branch_dirs[seed, depth, "constant"]/"history.json", 25)
-                    != _objective_history(refdir/"history.json", 25)
+            if (_reference_objective_projection(_objective_history(branch_dirs[seed, depth, "constant"]/"history.json", 25))
+                    != _reference_objective_projection(_objective_history(refdir/"history.json", 25))
                     or constant["development_history"] != refsummary["development_history"]):
                 raise ValueError("Constant replay training or development histories differ from the original fit.")
             low_replay = low.get("constant_replay_verification", {})

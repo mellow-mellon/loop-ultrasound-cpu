@@ -1,0 +1,107 @@
+{
+  "status": "executed_two_authorized_cpu_checks",
+  "execution_date": "2026-10-11",
+  "protocol_locked_commit": "2e190c34c34ff517a4f058f61e87c2c03132e8e2",
+  "analysis_and_plot_foundation_commit": "4389322f14bae45d5abf583d6c2e8d344051b04c",
+  "analysis_source_sha256": "67bc61b543df9c6c7731c5107fb183bddf10d398354309a46403bb5136299fe8",
+  "temperature_diagnostic": {
+    "fixed_source_networks": 20,
+    "primary_source_networks": 10,
+    "secondary_source_networks": 10,
+    "temperature_fits": 100,
+    "local_oof_case_records": 3180,
+    "development_cases": 159,
+    "public_protocol_sha256": "5cfc826c58e707f76ccb4cc81f2c183356047f5f54b6350cdb4e5246f3cae0cf",
+    "fold_assignment_sha256": "e9de29cb3c3212fe9a6a1b86b24ff399a49151367002d07b5cd22505d2629ce4",
+    "sources": {
+      "diagnostic_module_sha256": "25742fe8c64d1b295e5326e76efeb3f710b41a797627d85f961a98802612a7e2",
+      "encoder_sha256": "d2169b631631699b652d392db7647472cf194a9d01fe402ff11470c4dd374eb0",
+      "manifest_sha256": "47a065ec48faca9fb37c17f841a1c2414a6bd902e55f3c93a90dba3df3eaf0ac",
+      "primary_protocol_sha256": "e858d379e795d1af2c5e5ff2dc1e1c0d93f8a2a86ba5f16349ad71837af65994",
+      "secondary_protocol_sha256": "1c0b2c86b0581855b8ec0163308a9ab3809058d7cd879c4c95b6aaa05780b2e3",
+      "training_source_sha256": "c3a1d28753504f5751d97db125c7a6515ae2db025d68ae15f72b5f1e085dc317"
+    },
+    "independent_inverse_temperature_derivative_recalculation_passed": true,
+    "maximum_relative_temperature_difference": 4.3e-08,
+    "all_oof_predictions_and_case_bootstrap_independently_reproduced": true
+  },
+  "tail_lr_control": {
+    "device": "cpu",
+    "workers": 2,
+    "threads_per_worker": 2,
+    "workers_exit_codes": [
+      0,
+      0
+    ],
+    "worker_elapsed_seconds": [
+      744.6899439999834,
+      947.5232357080095
+    ],
+    "timing_scope": "Each worker wall time includes its own training, evaluation and writes; workers overlap. Excludes prior data/cache preparation. Sum is not parallel wall-clock duration.",
+    "compute_budget": {
+      "prefix_fits": 10,
+      "tail_branches": 20,
+      "updates_per_prefix": 2560,
+      "new_updates_per_tail_branch": 640,
+      "full_trajectory_updates_per_endpoint": 3200,
+      "total_actual_new_updates": 38400,
+      "four_steps_use_more_block_applications": true
+    },
+    "exact_original_constant_replays": 10,
+    "independent_prefix_safe_disk_loads": 10,
+    "independent_raw_branch_checks": 20,
+    "independent_case_effect_bootstraps": 21,
+    "all_alignment_checks_passed": {
+      "exact_twenty_policy_depth_seed_branches": true,
+      "same_case_view_label_sets": true,
+      "all_prefix_artifact_digests_verified": true,
+      "full_prefix_state_restoration_certified": true,
+      "paired_sampling_trajectories_match": true,
+      "constant_prediction_csv_bytes_replay_reference": true,
+      "constant_objective_and_development_histories_replay_reference": true,
+      "low_branch_binds_verified_constant_summary": true,
+      "no_train_development_overlap": true
+    },
+    "sources": {
+      "encoder_sha256": "d2169b631631699b652d392db7647472cf194a9d01fe402ff11470c4dd374eb0",
+      "manifest_sha256": "47a065ec48faca9fb37c17f841a1c2414a6bd902e55f3c93a90dba3df3eaf0ac",
+      "training_source_sha256": "c3a1d28753504f5751d97db125c7a6515ae2db025d68ae15f72b5f1e085dc317",
+      "launcher_source_sha256": "df36dbdae561ea0d7b842437000d95e1fddaed496c977cc7685ea18e210016e0",
+      "reference_protocol_sha256": "e858d379e795d1af2c5e5ff2dc1e1c0d93f8a2a86ba5f16349ad71837af65994",
+      "protocol_sha256": "f479e554852ff97dc48c7aec28657df1bd5629f8e2812858345482a564bdb636"
+    }
+  },
+  "verification": {
+    "tests": {
+      "status": "passed",
+      "command": "PYTHONPATH=src .venv/bin/python -m pytest -q",
+      "tests_passed": 464,
+      "subtests_passed": 41,
+      "elapsed_seconds": 8.21,
+      "execution_date": "2026-10-11",
+      "scope": "All prior checks plus safe full-state disk fork/RNG/optimizer restoration, fixed-fold temperature complementary-label/no-overwrite/identity controls and strict twenty-branch paired learning-rate provenance/replay analysis. Includes enriched-versus-original training history projection regression."
+    },
+    "installed_package_source_hashes_match": true,
+    "actual_result_pngs_visually_reviewed": 4,
+    "figures_use_aggregate_results_only": true,
+    "independent_review": "temperature fits and records, safe full-state prefix restoration, manual sampler traces, raw Case metrics, ten constant replays, all 21 Case bootstrap effects, within-tail and high-confidence transitions"
+  },
+  "runtime": {
+    "python": "3.12.14",
+    "torch": "2.14.1",
+    "timm": "1.0.30",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "matplotlib": "3.11.2"
+  },
+  "scope": {
+    "calibration_or_test_predictions_generated": false,
+    "clinical_validation": false,
+    "patient_mapping": "unverified_Case_grouped_only",
+    "untouched_evaluation_cohort": false,
+    "automatic_larger_or_gpu_stage_started": false,
+    "raw_images_case_ids_predictions_states_weights_published": false
+  },
+  "interpretation": "Exploratory fixed-policy depth interaction on observed tune; lower tail LR mostly avoids constant-policy late degradation. No general recurrence, pure gradient cause, or clinical validation claim."
+}

@@ -334,6 +334,19 @@ python -m loop_ultrasound.analyze_tail_lr \
 
 Two disjoint training workers can use `--workers 2 --worker-index 0` and `1`, each with two CPU threads. Completed/claimed trajectories are never overwritten. The primary contrast is `H = G_low_tail - G_constant`, with `G = Brier_depth2 - Brier_depth4`. Report H together with absolute low-tail G, NLL, AUROC, Dice and prefix-to-endpoint changes. Changing AdamW learning rate changes both gradient and decoupled weight-decay step magnitudes. There is no learning-rate sweep, best-epoch selection or automatic next stage.
 
+## CPU exploratory sharing-by-depth architecture comparison
+
+The next locked comparison reuses the twenty validated shared endpoints and adds fresh ordinary/untied depth2 and depth4 controls at the same terminal-only joint supervision,256 training/159 tune Cases and five seeds. Both fixed tail learning-rate policies apply symmetrically to both architectures. See [the plan](docs/CPU_ARCHITECTURE256_PLAN.md) and [locked protocol](configs/cpu_architecture256.json).
+
+Each untied layer starts at the corresponding shared block values but owns independent parameter storage; readout/head initial values and Case-view sampling are paired. Ten fresh untied prefixes plus twenty tails require38,400 new updates. The full-state fork uses the same published training helper; core model/data/training sources are unchanged. Existing shared endpoints are bound references, not extra independent fits.
+
+```bash
+python -m loop_ultrasound.architecture_comparison --prepare-only --threads 2
+python -m loop_ultrasound.architecture_comparison --threads 2
+```
+
+Two disjoint workers can use `--workers 2 --worker-index 0` and `1`, each with two CPU threads. Report same-depth sharing benefits (`Brier_UJ - Brier_SJ`), each architecture's trained-depth benefit, and their interaction separately for both policies. Malignant and benign errors and cross-model prediction changes use the fixed0.5 threshold plus inclusive high-confidence cutoffs0.05/0.95. This is a frozen-feature refiner comparison at matched width/depth, not matched parameters, fully tuned architectures, internal inference correction or independent clinical validation. This phase assesses whether a later lesion intervention is worthwhile; it does not execute one or open calibration/test data.
+
 ## Data and code attribution
 
 BUS-BRA is described in [the dataset publication](https://pubmed.ncbi.nlm.nih.gov/37937827/) and distributed under CC-BY-4.0 on Zenodo. Download it from the official source; it is not bundled here. Follow the authors' citation requirements when reporting experiments. The encoder's upstream license applies to its weights. This repository's original code is MIT; the authors' MATLAB training implementation was not copied. Do not upload `data/`, `outputs/`, weights or individual prediction files to this public repository.

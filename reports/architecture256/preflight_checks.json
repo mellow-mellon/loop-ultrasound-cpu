@@ -1,0 +1,26 @@
+{
+  "status": "passed_before_new_untied_training",
+  "execution_date": "2026-10-11",
+  "protocol_sha256": "ad2e84e0a0a6f91c1c198112cc0543ad3c6282cf0b058923b3a9721c3639f824",
+  "training_source_sha256": "c3a1d28753504f5751d97db125c7a6515ae2db025d68ae15f72b5f1e085dc317",
+  "launcher_source_sha256": "27a682bdc3fe0c7941e049e4b7c9a97ab210c7bdf0beba2543d4c1efd834165d",
+  "helper_source_sha256": "df36dbdae561ea0d7b842437000d95e1fddaed496c977cc7685ea18e210016e0",
+  "tests": {
+    "command": "PYTHONPATH=src .venv/bin/python -m pytest -q tests/test_architecture_comparison.py tests/test_tail_lr.py",
+    "tests_passed": 33,
+    "elapsed_seconds": 1.55,
+    "scope": "New untied component and Torch RNG matching, independent storage, initial forward parity, fixed policies, source-change refusal, claimed-run refusal, and inherited safe full-state restore checks."
+  },
+  "independent_read_only_checks": {
+    "paired_initializations_verified": 10,
+    "existing_shared_endpoint_bindings_verified": 20,
+    "existing_shared_prefix_bindings_verified": 10,
+    "complete_shared_reference_raw_analysis_passed": true,
+    "core_training_unchanged": true,
+    "helper_matches_original_shared_launcher": true,
+    "train_cases": 256,
+    "tune_cases": 159,
+    "new_actual_optimizer_updates": 38400,
+    "new_training_performed_during_preflight": false
+  }
+}
